@@ -101,9 +101,7 @@ function Picker:new(opts)
     _find_id = 0,
     _completion_callbacks = type(opts._completion_callbacks) == "table" and opts._completion_callbacks or {},
     manager = (type(opts.manager) == "table" and getmetatable(opts.manager) == EntryManager) and opts.manager,
-    _multi = (type(opts._multi) == "table" and getmetatable(opts._multi) == getmetatable(MultiSelect:new()))
-        and opts._multi
-      or MultiSelect:new(),
+    _multi = (type(opts._multi) == "table" and getmetatable(opts._multi) == getmetatable(MultiSelect:new())) and opts._multi or MultiSelect:new(),
 
     track = vim.F.if_nil(opts.track, false),
     stats = {},
@@ -125,20 +123,14 @@ function Picker:new(opts)
     __cycle_layout_list = vim.F.if_nil(opts.cycle_layout_list, config.values.cycle_layout_list),
 
     window = {
-      winblend = vim.F.if_nil(
-        opts.winblend,
-        type(opts.window) == "table" and opts.window.winblend or config.values.winblend
-      ),
+      winblend = vim.F.if_nil(opts.winblend, type(opts.window) == "table" and opts.window.winblend or config.values.winblend),
       border = vim.F.if_nil(opts.border, type(opts.window) == "table" and opts.window.border or config.values.border),
-      borderchars = vim.F.if_nil(
-        opts.borderchars,
-        type(opts.window) == "table" and opts.window.borderchars or config.values.borderchars
-      ),
+      borderchars = vim.F.if_nil(opts.borderchars, type(opts.window) == "table" and opts.window.borderchars or config.values.borderchars),
     },
 
     cache_picker = config.resolve_table_opts(opts.cache_picker, vim.deepcopy(config.values.cache_picker)),
 
-    __scrolling_limit = tonumber(vim.F.if_nil(opts.temp__scrolling_limit, 250)),
+    __scrolling_limit = tonumber(vim.F.if_nil(opts.temp__scrolling_limit, config.temp__scrolling_limit, 250)),
   }, self)
 
   obj.get_window_options = opts.get_window_options or p_window.get_window_options
@@ -374,8 +366,7 @@ function Picker:find()
     popup_opts.preview.titlehighlight = "TelescopePreviewTitle"
   end
 
-  local results_win, results_opts, results_border_win =
-    self:_create_window("", popup_opts.results, not self.wrap_results)
+  local results_win, results_opts, results_border_win = self:_create_window("", popup_opts.results, not self.wrap_results)
 
   local results_bufnr = a.nvim_win_get_buf(results_win)
   pcall(a.nvim_buf_set_option, results_bufnr, "tabstop", 1) -- #1834
@@ -441,10 +432,7 @@ function Picker:find()
     end
     a.nvim_feedkeys(a.nvim_replace_termcodes(keys, true, false, true), "n", true)
   else
-    utils.notify(
-      "pickers.find",
-      { msg = "`initial_mode` should be one of ['normal', 'insert'] but passed " .. self.initial_mode, level = "ERROR" }
-    )
+    utils.notify("pickers.find", { msg = "`initial_mode` should be one of ['normal', 'insert'] but passed " .. self.initial_mode, level = "ERROR" })
   end
 
   local main_loop = async.void(function()
@@ -596,10 +584,7 @@ function Picker:recalculate_layout()
       popup_opts.preview.highlight = "TelescopePreviewNormal"
       popup_opts.preview.borderhighlight = "TelescopePreviewBorder"
       popup_opts.preview.titlehighlight = "TelescopePreviewTitle"
-      local preview_bufnr = status.preview_bufnr ~= nil
-          and vim.api.nvim_buf_is_valid(status.preview_bufnr)
-          and status.preview_bufnr
-        or ""
+      local preview_bufnr = status.preview_bufnr ~= nil and vim.api.nvim_buf_is_valid(status.preview_bufnr) and status.preview_bufnr or ""
       preview_win, preview_opts, preview_border_win = self:_create_window(preview_bufnr, popup_opts.preview)
       if preview_bufnr == "" then
         preview_bufnr = a.nvim_win_get_buf(preview_win)
@@ -854,14 +839,7 @@ function Picker:_reset_prefix_color(hl_group)
   self._current_prefix_hl_group = hl_group or nil
 
   if self.prompt_prefix ~= "" then
-    vim.api.nvim_buf_add_highlight(
-      self.prompt_bufnr,
-      ns_telescope_prompt_prefix,
-      self._current_prefix_hl_group or "TelescopePromptPrefix",
-      0,
-      0,
-      #self.prompt_prefix
-    )
+    vim.api.nvim_buf_add_highlight(self.prompt_bufnr, ns_telescope_prompt_prefix, self._current_prefix_hl_group or "TelescopePromptPrefix", 0, 0, #self.prompt_prefix)
   end
 end
 
@@ -952,9 +930,7 @@ function Picker:set_selection(row)
   end
 
   if row > a.nvim_buf_line_count(results_bufnr) then
-    log.debug(
-      string.format("Should not be possible to get row this large %s %s", row, a.nvim_buf_line_count(results_bufnr))
-    )
+    log.debug(string.format("Should not be possible to get row this large %s %s", row, a.nvim_buf_line_count(results_bufnr)))
 
     return
   end
@@ -1051,10 +1027,7 @@ function Picker:update_prefix(entry, row)
     return
   end
 
-  local old_caret = string.sub(line, 0, #prefix(true)) == prefix(true) and prefix(true)
-    or string.sub(line, 0, #prefix(true, true)) == prefix(true, true) and prefix(true, true)
-    or string.sub(line, 0, #prefix(false)) == prefix(false) and prefix(false)
-    or string.sub(line, 0, #prefix(false, true)) == prefix(false, true) and prefix(false, true)
+  local old_caret = string.sub(line, 0, #prefix(true)) == prefix(true) and prefix(true) or string.sub(line, 0, #prefix(true, true)) == prefix(true, true) and prefix(true, true) or string.sub(line, 0, #prefix(false)) == prefix(false) and prefix(false) or string.sub(line, 0, #prefix(false, true)) == prefix(false, true) and prefix(false, true)
   if old_caret == false then
     log.warn(string.format("can't identify old caret in line: %s", line))
     return
