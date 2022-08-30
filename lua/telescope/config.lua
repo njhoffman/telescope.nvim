@@ -124,7 +124,7 @@ local layout_config_description = string.format(
     of 50%% of the screen width.
 
     Default: %s
-]],
+]] ,
   vim.inspect(layout_config_defaults, { newline = "\n    ", indent = "  " })
 )
 
@@ -823,6 +823,15 @@ append(
     Default: require("telescope.previewers").buffer_previewer_maker]]
 )
 
+append(
+  "scrolling_limit",
+  250,
+  [[
+  Limit number of the scrollable results
+
+  Default: 250]]
+)
+
 -- @param user_defaults table: a table where keys are the names of options,
 --    and values are the ones the user wants
 -- @param tele_defaults table: (optional) a table containing all of the defaults
@@ -836,20 +845,16 @@ function config.set_defaults(user_defaults, tele_defaults)
 
   local function get(name, default_val)
     if name == "layout_config" then
-      return smarter_depth_2_extend(
-        vim.F.if_nil(user_defaults[name], {}),
-        vim.tbl_deep_extend("keep", vim.F.if_nil(config.values[name], {}), vim.F.if_nil(default_val, {}))
-      )
+      return smarter_depth_2_extend(vim.F.if_nil(user_defaults[name], {}),
+        vim.tbl_deep_extend("keep", vim.F.if_nil(config.values[name], {}), vim.F.if_nil(default_val, {})))
     end
     if name == "history" or name == "cache_picker" or name == "preview" then
       if user_defaults[name] == false or config.values[name] == false then
         return false
       end
 
-      return smarter_depth_2_extend(
-        vim.F.if_nil(user_defaults[name], {}),
-        vim.tbl_deep_extend("keep", vim.F.if_nil(config.values[name], {}), vim.F.if_nil(default_val, {}))
-      )
+      return smarter_depth_2_extend(vim.F.if_nil(user_defaults[name], {}),
+        vim.tbl_deep_extend("keep", vim.F.if_nil(config.values[name], {}), vim.F.if_nil(default_val, {})))
     end
     return first_non_null(user_defaults[name], config.values[name], default_val)
   end
