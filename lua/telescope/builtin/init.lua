@@ -26,11 +26,6 @@
 --- </code>
 ---@brief ]]
 
-if 1 ~= vim.fn.has "nvim-0.7.0" then
-  vim.api.nvim_err_writeln "Telescope.nvim requires at least nvim-0.7.0. See `:h telescope.changelog-1851`"
-  return
-end
-
 local builtin = {}
 
 -- Ref: https://github.com/tjdevries/lazy.nvim
@@ -228,6 +223,7 @@ builtin.pickers = require_on_exported_call("telescope.builtin.__internal").picke
 --- Use the telescope...
 ---@param opts table: options to pass to the picker
 ---@field show_pluto boolean: we love pluto (default: false, because its a hidden feature)
+---@field show_moon boolean: we love the moon (default: false, because its a hidden feature)
 builtin.planets = require_on_exported_call("telescope.builtin.__internal").planets
 
 --- Lists symbols inside of `data/telescope-sources/*.json` found in your runtime path
