@@ -582,6 +582,7 @@ actions.git_checkout = function(prompt_bufnr)
       msg = string.format("Checked out: %s", selection.value),
       level = "INFO",
     })
+    vim.cmd "checktime"
   else
     utils.notify("actions.git_checkout", {
       msg = string.format("Error when checking out: %s. Git returned: '%s'", selection.value, table.concat(stderr, " ")),
@@ -763,6 +764,7 @@ actions.git_checkout_current_buffer = function(prompt_bufnr)
   end
   actions.close(prompt_bufnr)
   utils.get_os_command_output({ "git", "checkout", selection.value, "--", selection.file }, cwd)
+  vim.cmd "checktime"
 end
 
 --- Stage/unstage selected file
