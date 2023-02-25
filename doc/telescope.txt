@@ -804,7 +804,8 @@ builtin.live_grep({opts})                      *telescope.builtin.live_grep()*
 
 
 builtin.grep_string({opts})                  *telescope.builtin.grep_string()*
-    Searches for the string under your cursor in your current working directory
+    Searches for the string under your cursor or the visual selection in your
+    current working directory
 
 
     Parameters: ~
@@ -1454,8 +1455,10 @@ builtin.lsp_references({opts})            *telescope.builtin.lsp_references()*
         {include_current_line} (boolean)  include current line (default:
                                           false)
         {jump_type}            (string)   how to goto reference if there is
-                                          only one, values: "tab", "split",
-                                          "vsplit", "never"
+                                          only one and the definition file is
+                                          different from the current file,
+                                          values: "tab", "split", "vsplit",
+                                          "never"
         {fname_width}          (number)   defines the width of the filename
                                           section (default: 30)
         {show_line}            (boolean)  show results text (default: true)
@@ -1501,8 +1504,10 @@ builtin.lsp_definitions({opts})          *telescope.builtin.lsp_definitions()*
         {opts} (table)  options to pass to the picker
 
     Options: ~
-        {jump_type}   (string)   how to goto definition if there is only one,
-                                 values: "tab", "split", "vsplit", "never"
+        {jump_type}   (string)   how to goto definition if there is only one
+                                 and the definition file is different from the
+                                 current file, values: "tab", "split",
+                                 "vsplit", "never"
         {fname_width} (number)   defines the width of the filename section
                                  (default: 30)
         {show_line}   (boolean)  show results text (default: true)
@@ -1518,8 +1523,10 @@ builtin.lsp_type_definitions({opts}) *telescope.builtin.lsp_type_definitions()*
         {opts} (table)  options to pass to the picker
 
     Options: ~
-        {jump_type}   (string)   how to goto definition if there is only one,
-                                 values: "tab", "split", "vsplit", "never"
+        {jump_type}   (string)   how to goto definition if there is only one
+                                 and the definition file is different from the
+                                 current file, values: "tab", "split",
+                                 "vsplit", "never"
         {fname_width} (number)   defines the width of the filename section
                                  (default: 30)
         {show_line}   (boolean)  show results text (default: true)
@@ -1536,8 +1543,9 @@ builtin.lsp_implementations({opts})  *telescope.builtin.lsp_implementations()*
 
     Options: ~
         {jump_type}   (string)   how to goto implementation if there is only
-                                 one, values: "tab", "split", "vsplit",
-                                 "never"
+                                 one and the definition file is different from
+                                 the current file, values: "tab", "split",
+                                 "vsplit", "never"
         {fname_width} (number)   defines the width of the filename section
                                  (default: 30)
         {show_line}   (boolean)  show results text (default: true)
@@ -1557,6 +1565,10 @@ builtin.lsp_document_symbols({opts}) *telescope.builtin.lsp_document_symbols()*
     Options: ~
         {fname_width}       (number)        defines the width of the filename
                                             section (default: 30)
+        {symbol_width}      (number)        defines the width of the symbol
+                                            section (default: 25)
+        {symbol_type_width} (number)        defines the width of the symbol
+                                            type section (default: 8)
         {show_line}         (boolean)       if true, shows the content of the
                                             line the tag is found on (default:
                                             false)
@@ -1581,6 +1593,10 @@ builtin.lsp_workspace_symbols({opts}) *telescope.builtin.lsp_workspace_symbols()
                                             (default: "")
         {fname_width}       (number)        defines the width of the filename
                                             section (default: 30)
+        {symbol_width}      (number)        defines the width of the symbol
+                                            section (default: 25)
+        {symbol_type_width} (number)        defines the width of the symbol
+                                            type section (default: 8)
         {show_line}         (boolean)       if true, shows the content of the
                                             line the tag is found on (default:
                                             false)
@@ -2711,7 +2727,7 @@ actions.git_track_branch({prompt_bufnr}) *telescope.actions.git_track_branch()*
 
 
 actions.git_delete_branch({prompt_bufnr}) *telescope.actions.git_delete_branch()*
-    Delete the currently selected branch
+    Delete all currently selected branches
 
 
     Parameters: ~
