@@ -406,7 +406,6 @@ function Picker:find()
   --
   -- This just lets us stop doing stuff after tons of  things.
   self.max_results = self.__scrolling_limit
-  vim.dbglog("max", self.max_results)
   vim.api.nvim_buf_set_lines(results_bufnr, 0, self.max_results, false, utils.repeated_table(self.max_results, ""))
 
   local status_updater = self:get_status_updater(prompt_win, prompt_bufnr)
