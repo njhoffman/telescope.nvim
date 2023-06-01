@@ -738,7 +738,9 @@ function Picker.close_windows(status)
   utils.win_delete("preview_border_win", status.preview_border_win, true, true)
 
   -- we cant use win_delete. We first need to close and then delete the buffer
-  vim.api.nvim_win_close(status.prompt_win, true)
+  if vim.api.nvim_win_is_valid(status.prompt_win) then
+    vim.api.nvim_win_close(status.prompt_win, true)
+  end
   utils.buf_delete(status.prompt_bufnr)
 
   state.clear_status(status.prompt_bufnr)
@@ -842,8 +844,15 @@ end
 function Picker:_reset_prefix_color(hl_group)
   self._current_prefix_hl_group = hl_group or nil
 
-  if self.prompt_prefix ~= "" then
-    vim.api.nvim_buf_add_highlight(self.prompt_bufnr, ns_telescope_prompt_prefix, self._current_prefix_hl_group or "TelescopePromptPrefix", 0, 0, #self.prompt_prefix)
+  if self.prompt_prefix ~= "" and a.nvim_buf_is_valid(self.prompt_bufnr) then
+    vim.api.nvim_buf_add_highlight(
+      self.prompt_bufnr,
+      ns_telescope_prompt_prefix,
+      self._current_prefix_hl_group or "TelescopePromptPrefix",
+      0,
+      0,
+      #self.prompt_prefix
+    )
   end
 end
 
@@ -1532,15 +1541,24 @@ function Picker:_resume_picker()
     index = index + 1
   end
   self.cache_picker.is_cached = false
+  local on_resume_complete = function()
+    if vim.api.nvim_buf_is_valid(self.prompt_bufnr) then
+      vim.api.nvim_buf_call(self.prompt_bufnr, function()
+        vim.cmd "do User TelescopeResumePost"
+      end)
+    end
+  end
   -- if text changed, required to set anew to restart finder; otherwise hl and selection
   if self.cache_picker.cached_prompt ~= self.default_text then
     self:set_prompt(self.default_text)
+    on_resume_complete()
   else
     -- scheduling required to apply highlighting and selection appropriately
     await_schedule(function()
       if self.cache_picker.selection_row ~= nil then
         self:set_selection(self.cache_picker.selection_row)
       end
+      on_resume_complete()
     end)
   end
 end

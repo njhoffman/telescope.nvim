@@ -60,7 +60,8 @@ local function split(s, sep, plain, opts)
   opts = opts or {}
   local t = {}
   for c in vim.gsplit(s, sep, plain) do
-    table.insert(t, c)
+    local line = opts.file_encoding and vim.iconv(c, opts.file_encoding, "utf8") or c
+    table.insert(t, line)
     if opts.preview.timeout then
       local diff_time = (vim.loop.hrtime() - opts.start_time) / 1e6
       if diff_time > opts.preview.timeout then
@@ -425,7 +426,14 @@ previewers.new_buffer_previewer = function(opts)
 
       if vim.api.nvim_buf_is_valid(self.state.bufnr) then
         vim.api.nvim_buf_call(self.state.bufnr, function()
-          vim.cmd "do User TelescopePreviewerLoaded"
+          vim.api.nvim_exec_autocmds("User", {
+            pattern = "TelescopePreviewerLoaded",
+            data = {
+              title = entry.preview_title,
+              bufname = self.state.bufname,
+              filetype = pfiletype.detect(self.state.bufname or ""),
+            },
+          })
         end)
       end
     end)
@@ -464,6 +472,7 @@ previewers.cat = defaulter(function(opts)
         bufname = self.state.bufname,
         winid = self.state.winid,
         preview = opts.preview,
+        file_encoding = opts.file_encoding,
       })
     end,
   }
@@ -518,6 +527,7 @@ previewers.vimgrep = defaulter(function(opts)
           callback = function(bufnr)
             jump_to_line(self, bufnr, entry.lnum)
           end,
+          file_encoding = opts.file_encoding,
         })
       end
     end,

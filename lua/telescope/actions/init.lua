@@ -75,6 +75,12 @@ local actions = setmetatable({}, {
   end,
 })
 
+local append_to_history = function(prompt_bufnr)
+  action_state
+    .get_current_history()
+    :append(action_state.get_current_line(), action_state.get_current_picker(prompt_bufnr))
+end
+
 --- Move the selection to the next entry
 ---@param prompt_bufnr number: The prompt bufnr
 actions.move_selection_next = function(prompt_bufnr)
@@ -105,24 +111,27 @@ end
 ---@param prompt_bufnr number: The prompt bufnr
 actions.move_to_top = function(prompt_bufnr)
   local current_picker = action_state.get_current_picker(prompt_bufnr)
-  current_picker:set_selection(p_scroller.top(current_picker.sorting_strategy, current_picker.max_results,
-    current_picker.manager:num_results()))
+  current_picker:set_selection(
+    p_scroller.top(current_picker.sorting_strategy, current_picker.max_results, current_picker.manager:num_results())
+  )
 end
 
 --- Move to the middle of the picker
 ---@param prompt_bufnr number: The prompt bufnr
 actions.move_to_middle = function(prompt_bufnr)
   local current_picker = action_state.get_current_picker(prompt_bufnr)
-  current_picker:set_selection(p_scroller.middle(current_picker.sorting_strategy, current_picker.max_results,
-    current_picker.manager:num_results()))
+  current_picker:set_selection(
+    p_scroller.middle(current_picker.sorting_strategy, current_picker.max_results, current_picker.manager:num_results())
+  )
 end
 
 --- Move to the bottom of the picker
 ---@param prompt_bufnr number: The prompt bufnr
 actions.move_to_bottom = function(prompt_bufnr)
   local current_picker = action_state.get_current_picker(prompt_bufnr)
-  current_picker:set_selection(p_scroller.bottom(current_picker.sorting_strategy, current_picker.max_results,
-    current_picker.manager:num_results()))
+  current_picker:set_selection(
+    p_scroller.bottom(current_picker.sorting_strategy, current_picker.max_results, current_picker.manager:num_results())
+  )
 end
 
 --- Add current entry to multi select
@@ -238,10 +247,7 @@ end
 --- i.e. open the selection in the current buffer
 ---@param prompt_bufnr number: The prompt bufnr
 actions.select_default = {
-  pre = function(prompt_bufnr)
-    action_state.get_current_history():append(action_state.get_current_line(),
-      action_state.get_current_picker(prompt_bufnr))
-  end,
+  pre = append_to_history,
   action = function(prompt_bufnr)
     return action_set.select(prompt_bufnr, "default")
   end,
@@ -253,10 +259,7 @@ actions.select_default = {
 --- i.e. open the selection in a new horizontal split
 ---@param prompt_bufnr number: The prompt bufnr
 actions.select_horizontal = {
-  pre = function(prompt_bufnr)
-    action_state.get_current_history():append(action_state.get_current_line(),
-      action_state.get_current_picker(prompt_bufnr))
-  end,
+  pre = append_to_history,
   action = function(prompt_bufnr)
     return action_set.select(prompt_bufnr, "horizontal")
   end,
@@ -268,10 +271,7 @@ actions.select_horizontal = {
 --- i.e. open the selection in a new vertical split
 ---@param prompt_bufnr number: The prompt bufnr
 actions.select_vertical = {
-  pre = function(prompt_bufnr)
-    action_state.get_current_history():append(action_state.get_current_line(),
-      action_state.get_current_picker(prompt_bufnr))
-  end,
+  pre = append_to_history,
   action = function(prompt_bufnr)
     return action_set.select(prompt_bufnr, "vertical")
   end,
@@ -283,10 +283,7 @@ actions.select_vertical = {
 --- i.e. open the selection in a new tab
 ---@param prompt_bufnr number: The prompt bufnr
 actions.select_tab = {
-  pre = function(prompt_bufnr)
-    action_state.get_current_history():append(action_state.get_current_line(),
-      action_state.get_current_picker(prompt_bufnr))
-  end,
+  pre = append_to_history,
   action = function(prompt_bufnr)
     return action_set.select(prompt_bufnr, "tab")
   end,
@@ -298,11 +295,7 @@ actions.select_tab = {
 --- i.e. open the selection in a window
 ---@param prompt_bufnr number: The prompt bufnr
 actions.select_drop = {
-  pre = function(prompt_bufnr)
-    action_state
-      .get_current_history()
-      :append(action_state.get_current_line(), action_state.get_current_picker(prompt_bufnr))
-  end,
+  pre = append_to_history,
   action = function(prompt_bufnr)
     return action_set.select(prompt_bufnr, "drop")
   end,
@@ -314,11 +307,7 @@ actions.select_drop = {
 --- i.e. open the selection in a new tab
 ---@param prompt_bufnr number: The prompt bufnr
 actions.select_tab_drop = {
-  pre = function(prompt_bufnr)
-    action_state
-      .get_current_history()
-      :append(action_state.get_current_line(), action_state.get_current_picker(prompt_bufnr))
-  end,
+  pre = append_to_history,
   action = function(prompt_bufnr)
     return action_set.select(prompt_bufnr, "tab drop")
   end,
@@ -536,8 +525,11 @@ actions.git_create_branch = function(prompt_bufnr)
       })
     else
       utils.notify("actions.git_create_branch", {
-        msg = string.format("Error when creating new branch: '%s' Git returned '%s'", new_branch,
-          table.concat(stderr, " ")),
+        msg = string.format(
+          "Error when creating new branch: '%s' Git returned '%s'",
+          new_branch,
+          table.concat(stderr, " ")
+        ),
         level = "INFO",
       })
     end
@@ -586,7 +578,11 @@ actions.git_checkout = function(prompt_bufnr)
     vim.cmd "checktime"
   else
     utils.notify("actions.git_checkout", {
-      msg = string.format("Error when checking out: %s. Git returned: '%s'", selection.value, table.concat(stderr, " ")),
+      msg = string.format(
+        "Error when checking out: %s. Git returned: '%s'",
+        selection.value,
+        table.concat(stderr, " ")
+      ),
       level = "ERROR",
     })
   end
@@ -617,7 +613,11 @@ actions.git_switch_branch = function(prompt_bufnr)
     })
   else
     utils.notify("actions.git_switch_branch", {
-      msg = string.format("Error when switching to: %s. Git returned: '%s'", selection.value, table.concat(stderr, " ")),
+      msg = string.format(
+        "Error when switching to: %s. Git returned: '%s'",
+        selection.value,
+        table.concat(stderr, " ")
+      ),
       level = "ERROR",
     })
   end
@@ -863,51 +863,68 @@ end
 
 --- Sends the selected entries to the quickfix list, replacing the previous entries.
 ---@param prompt_bufnr number: The prompt bufnr
-actions.send_selected_to_qflist = function(prompt_bufnr)
-  send_selected_to_qf(prompt_bufnr, " ")
-end
-
+actions.send_selected_to_qflist = {
+  pre = append_to_history,
+  action = function(prompt_bufnr)
+    send_selected_to_qf(prompt_bufnr, " ")
+  end,
+}
 --- Adds the selected entries to the quickfix list, keeping the previous entries.
 ---@param prompt_bufnr number: The prompt bufnr
-actions.add_selected_to_qflist = function(prompt_bufnr)
-  send_selected_to_qf(prompt_bufnr, "a")
-end
-
+actions.add_selected_to_qflist = {
+  pre = append_to_history,
+  action = function(prompt_bufnr)
+    send_selected_to_qf(prompt_bufnr, "a")
+  end,
+}
 --- Sends all entries to the quickfix list, replacing the previous entries.
 ---@param prompt_bufnr number: The prompt bufnr
-actions.send_to_qflist = function(prompt_bufnr)
-  send_all_to_qf(prompt_bufnr, " ")
-end
-
+actions.send_to_qflist = {
+  pre = append_to_history,
+  action = function(prompt_bufnr)
+    send_all_to_qf(prompt_bufnr, " ")
+  end,
+}
 --- Adds all entries to the quickfix list, keeping the previous entries.
 ---@param prompt_bufnr number: The prompt bufnr
-actions.add_to_qflist = function(prompt_bufnr)
-  send_all_to_qf(prompt_bufnr, "a")
-end
-
+actions.add_to_qflist = {
+  pre = append_to_history,
+  action = function(prompt_bufnr)
+    send_all_to_qf(prompt_bufnr, "a")
+  end,
+}
 --- Sends the selected entries to the location list, replacing the previous entries.
 ---@param prompt_bufnr number: The prompt bufnr
-actions.send_selected_to_loclist = function(prompt_bufnr)
-  send_selected_to_qf(prompt_bufnr, " ", "loclist")
-end
-
+actions.send_selected_to_loclist = {
+  pre = append_to_history,
+  action = function(prompt_bufnr)
+    send_selected_to_qf(prompt_bufnr, " ", "loclist")
+  end,
+}
 --- Adds the selected entries to the location list, keeping the previous entries.
 ---@param prompt_bufnr number: The prompt bufnr
-actions.add_selected_to_loclist = function(prompt_bufnr)
-  send_selected_to_qf(prompt_bufnr, "a", "loclist")
-end
-
+actions.add_selected_to_loclist = {
+  pre = append_to_history,
+  action = function(prompt_bufnr)
+    send_selected_to_qf(prompt_bufnr, "a", "loclist")
+  end,
+}
 --- Sends all entries to the location list, replacing the previous entries.
 ---@param prompt_bufnr number: The prompt bufnr
-actions.send_to_loclist = function(prompt_bufnr)
-  send_all_to_qf(prompt_bufnr, " ", "loclist")
-end
-
+actions.send_to_loclist = {
+  pre = append_to_history,
+  action = function(prompt_bufnr)
+    send_all_to_qf(prompt_bufnr, " ", "loclist")
+  end,
+}
 --- Adds all entries to the location list, keeping the previous entries.
 ---@param prompt_bufnr number: The prompt bufnr
-actions.add_to_loclist = function(prompt_bufnr)
-  send_all_to_qf(prompt_bufnr, "a", "loclist")
-end
+actions.add_to_loclist = {
+  pre = append_to_history,
+  action = function(prompt_bufnr)
+    send_all_to_qf(prompt_bufnr, "a", "loclist")
+  end,
+}
 
 local smart_send = function(prompt_bufnr, mode, target)
   local picker = action_state.get_current_picker(prompt_bufnr)
@@ -921,31 +938,39 @@ end
 --- Sends the selected entries to the quickfix list, replacing the previous entries.
 --- If no entry was selected, sends all entries.
 ---@param prompt_bufnr number: The prompt bufnr
-actions.smart_send_to_qflist = function(prompt_bufnr)
-  smart_send(prompt_bufnr, " ")
-end
-
+actions.smart_send_to_qflist = {
+  pre = append_to_history,
+  action = function(prompt_bufnr)
+    smart_send(prompt_bufnr, " ")
+  end,
+}
 --- Adds the selected entries to the quickfix list, keeping the previous entries.
 --- If no entry was selected, adds all entries.
 ---@param prompt_bufnr number: The prompt bufnr
-actions.smart_add_to_qflist = function(prompt_bufnr)
-  smart_send(prompt_bufnr, "a")
-end
-
+actions.smart_add_to_qflist = {
+  pre = append_to_history,
+  action = function(prompt_bufnr)
+    smart_send(prompt_bufnr, "a")
+  end,
+}
 --- Sends the selected entries to the location list, replacing the previous entries.
 --- If no entry was selected, sends all entries.
 ---@param prompt_bufnr number: The prompt bufnr
-actions.smart_send_to_loclist = function(prompt_bufnr)
-  smart_send(prompt_bufnr, " ", "loclist")
-end
-
+actions.smart_send_to_loclist = {
+  pre = append_to_history,
+  action = function(prompt_bufnr)
+    smart_send(prompt_bufnr, " ", "loclist")
+  end,
+}
 --- Adds the selected entries to the location list, keeping the previous entries.
 --- If no entry was selected, adds all entries.
 ---@param prompt_bufnr number: The prompt bufnr
-actions.smart_add_to_loclist = function(prompt_bufnr)
-  smart_send(prompt_bufnr, "a", "loclist")
-end
-
+actions.smart_add_to_loclist = {
+  pre = append_to_history,
+  action = function(prompt_bufnr)
+    smart_send(prompt_bufnr, "a", "loclist")
+  end,
+}
 --- Open completion menu containing the tags which can be used to filter the results in a faster way
 ---@param prompt_bufnr number: The prompt bufnr
 actions.complete_tag = function(prompt_bufnr)
@@ -1150,21 +1175,6 @@ actions.which_key = function(prompt_bufnr, opts)
     }
   end
 
-  if opts.only_show_current_mode then
-    displayer = entry_display.create {
-      separator = opts.separator,
-      items = {
-        { width = opts.keybind_width },
-        { width = opts.name_width },
-      },
-    }
-    make_display = function(mapping)
-      return displayer {
-        { mapping.keybind, vim.F.if_nil(opts.keybind_hl, "TelescopeResultsVariable") },
-        { mapping.name, vim.F.if_nil(opts.name_hl, "TelescopeResultsFunction") },
-      }
-    end
-  end
   local mappings = {}
   local mode = a.nvim_get_mode().mode
   for _, v in pairs(action_utils.get_registered_mappings(prompt_bufnr)) do
@@ -1213,11 +1223,14 @@ actions.which_key = function(prompt_bufnr, opts)
     end
   end)
 
-  local entry_width = #opts.column_padding + opts.mode_width + opts.keybind_width + opts.name_width +
-      (3 * #opts.separator)
+  local entry_width = #opts.column_padding
+    + opts.mode_width
+    + opts.keybind_width
+    + opts.name_width
+    + (3 * #opts.separator)
   local num_total_columns = math.floor((vim.o.columns - #column_indent) / entry_width)
-  opts.num_rows = math.min(math.ceil(#mappings / num_total_columns),
-    resolver.resolve_height(opts.max_height)(_, _, vim.o.lines))
+  opts.num_rows =
+    math.min(math.ceil(#mappings / num_total_columns), resolver.resolve_height(opts.max_height)(_, _, vim.o.lines))
   local total_available_entries = opts.num_rows * num_total_columns
   local winheight = opts.num_rows + 2 * opts.line_padding
 
@@ -1230,8 +1243,8 @@ actions.which_key = function(prompt_bufnr, opts)
   local prompt_row = win_central_row(picker.prompt_win)
   local results_row = win_central_row(picker.results_win)
   local preview_row = picker.preview_win and win_central_row(picker.preview_win) or results_row
-  local prompt_pos = prompt_row < 0.4 * vim.o.lines or
-      prompt_row < 0.6 * vim.o.lines and results_row + preview_row < vim.o.lines
+  local prompt_pos = prompt_row < 0.4 * vim.o.lines
+    or prompt_row < 0.6 * vim.o.lines and results_row + preview_row < vim.o.lines
 
   local modes = { n = "Normal", i = "Insert" }
   local title_mode = opts.only_show_current_mode and modes[mode] .. " Mode " or ""

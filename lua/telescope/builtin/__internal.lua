@@ -62,6 +62,10 @@ internal.builtin = function(opts)
     end
   end
 
+  table.sort(objs, function(a, b)
+    return a.text < b.text
+  end)
+
   opts.bufnr = vim.api.nvim_get_current_buf()
   opts.winnr = vim.api.nvim_get_current_win()
   pickers
@@ -1125,7 +1129,6 @@ internal.registers = function(opts)
     :find()
 end
 
--- TODO: make filtering include the mapping and the action
 internal.keymaps = function(opts)
   opts.modes = vim.F.if_nil(opts.modes, { "n", "i", "c", "x" })
   opts.show_plug = vim.F.if_nil(opts.show_plug, true)
@@ -1144,6 +1147,7 @@ internal.keymaps = function(opts)
         if
           (opts.show_plug or not string.find(keymap.lhs, "<Plug>"))
           and (not opts.lhs_filter or opts.lhs_filter(keymap.lhs))
+          and (not opts.filter or opts.filter(keymap))
         then
           table.insert(keymaps_table, keymap)
           max_len_lhs = math.max(max_len_lhs, #utils.display_termcodes(keymap.lhs))
