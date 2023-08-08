@@ -8,6 +8,7 @@ local conf = require("telescope.config").values
 local pscan = require "plenary.scandir"
 
 local buf_delete = utils.buf_delete
+local git_command = utils.__git_command
 
 local previewers = {}
 
@@ -155,6 +156,131 @@ local handle_directory_preview = function(filepath, bufnr, opts)
   })
 end
 
+local handle_file_preview = function(filepath, bufnr, stat, opts)
+  vim.schedule(function()
+    opts.ft = opts.use_ft_detect and putils.filetype_detect(filepath)
+    local possible_binary = false
+    if type(opts.preview.filetype_hook) == "function" and opts.ft ~= nil and opts.ft ~= "" then
+      if not opts.preview.filetype_hook(filepath, bufnr, opts) then
+        return
+      end
+    end
+    if opts.preview.check_mime_type == true and has_file and (opts.ft == nil or opts.ft == "") then
+      -- avoid SIGABRT in buffer previewer happening with utils.get_os_command_output
+      local output = capture(string.format([[file --mime-type -b "%s"]], filepath))
+      local mime_type = vim.split(output, "/")
+      if mime_type[1] ~= "text" and mime_type[1] ~= "inode" and mime_type[2] ~= "json" then
+        if type(opts.preview.mime_hook) == "function" then
+          opts.preview.mime_hook(filepath, bufnr, opts)
+          return
+        else
+          possible_binary = true
+        end
+      end
+      if mime_type[2] == "json" then
+        opts.ft = "json"
+      end
+    end
+
+    if opts.preview.filesize_limit then
+      local mb_filesize = math.floor(stat.size / bytes_to_megabytes)
+      if mb_filesize > opts.preview.filesize_limit then
+        if type(opts.preview.filesize_hook) == "function" then
+          opts.preview.filesize_hook(filepath, bufnr, opts)
+        else
+          putils.set_preview_message(bufnr, opts.winid, "File exceeds preview size limit", opts.preview.msg_bg_fillchar)
+        end
+        return
+      end
+    end
+
+    opts.start_time = vim.loop.hrtime()
+    Path:new(filepath):_read_async(vim.schedule_wrap(function(data)
+      if not vim.api.nvim_buf_is_valid(bufnr) then
+        return
+      end
+      local processed_data = split(data, "[\r]?\n", nil, opts)
+
+      if processed_data then
+        local ok = pcall(vim.api.nvim_buf_set_lines, bufnr, 0, -1, false, processed_data)
+        if not ok then
+          return
+        end
+        -- last resort, if ft is still empty at this point in time,
+        -- we need to determine the filetype using the buffer contents
+        if opts.ft == nil or opts.ft == "" then
+          opts.ft = vim.filetype.match { filename = filepath, buf = bufnr }
+        end
+        -- we need to attempt to call filetype hook at this point "again"
+        -- previously only if we had a valid filetype, now every time
+        -- also if there will never be a filetype
+        if type(opts.preview.filetype_hook) == "function" then
+          if not opts.preview.filetype_hook(filepath, bufnr, opts) then
+            return
+          end
+        end
+        -- if we still dont have a ft we need to display the binary message
+        if (opts.ft == nil or opts.ft == "") and possible_binary then
+          putils.set_preview_message(bufnr, opts.winid, "Binary cannot be previewed", opts.preview.msg_bg_fillchar)
+          return
+        end
+
+        if opts.callback then
+          opts.callback(bufnr)
+        end
+        putils.highlighter(bufnr, opts.ft, opts)
+      else
+        if type(opts.preview.timeout_hook) == "function" then
+          opts.preview.timeout_hook(filepath, bufnr, opts)
+        else
+          putils.set_preview_message(bufnr, opts.winid, "Previewer timed out", opts.preview.msg_bg_fillchar)
+        end
+        return
+      end
+    end))
+  end)
+end
+
+local PREVIEW_TIMEOUT_MS = 250
+local PREVIEW_FILESIZE_MB = 25
+
+previewers.file_maker = function(filepath, bufnr, opts)
+  opts = vim.F.if_nil(opts, {})
+  opts.preview = vim.F.if_nil(opts.preview, {})
+  opts.preview.timeout = vim.F.if_nil(opts.preview.timeout, PREVIEW_TIMEOUT_MS)
+  opts.preview.filesize_limit = vim.F.if_nil(opts.preview.filesize_limit, PREVIEW_FILESIZE_MB)
+  opts.preview.msg_bg_fillchar = vim.F.if_nil(opts.preview.msg_bg_fillchar, "╱")
+  opts.preview.treesitter = vim.F.if_nil(opts.preview.treesitter, true)
+  if opts.use_ft_detect == nil then
+    opts.use_ft_detect = true
+  end
+  if opts.bufname ~= filepath then
+    if not vim.in_fast_event() then
+      filepath = vim.fn.expand(filepath)
+    end
+    vim.loop.fs_stat(filepath, function(_, stat)
+      if not stat then
+        return
+      end
+      if stat.type == "directory" then
+        handle_directory_preview(filepath, bufnr, opts)
+      else
+        handle_file_preview(filepath, bufnr, stat, opts)
+      end
+    end)
+  else
+    if opts.callback then
+      if vim.in_fast_event() then
+        vim.schedule(function()
+          opts.callback(bufnr)
+        end)
+      else
+        opts.callback(bufnr)
+      end
+    end
+  end
+end
+
 local search_cb_jump = function(self, bufnr, query)
   if not query then
     return
@@ -189,133 +315,17 @@ local scroll_fn = function(self, direction)
   end)
 end
 
-previewers.file_maker = function(filepath, bufnr, opts)
-  opts = vim.F.if_nil(opts, {})
-  -- TODO(conni2461): here shouldn't be any hardcoded magic numbers ...
-  opts.preview = vim.F.if_nil(opts.preview, {})
-  opts.preview.timeout = vim.F.if_nil(opts.preview.timeout, 250) -- in ms
-  opts.preview.filesize_limit = vim.F.if_nil(opts.preview.filesize_limit, 25) -- in mb
-  opts.preview.msg_bg_fillchar = vim.F.if_nil(opts.preview.msg_bg_fillchar, "╱") -- in mb
-  opts.preview.treesitter = vim.F.if_nil(opts.preview.treesitter, true)
-  if opts.use_ft_detect == nil then
-    opts.use_ft_detect = true
+local scroll_horizontal_fn = function(self, direction)
+  if not self.state then
+    return
   end
-  if opts.bufname ~= filepath then
-    if not vim.in_fast_event() then
-      filepath = vim.fn.expand(filepath)
-    end
-    vim.loop.fs_stat(filepath, function(_, stat)
-      if not stat then
-        return
-      end
-      if stat.type == "directory" then
-        handle_directory_preview(filepath, bufnr, opts)
-      else
-        vim.schedule(function()
-          opts.ft = opts.use_ft_detect and putils.filetype_detect(filepath)
-          local possible_binary = false
-          if type(opts.preview.filetype_hook) == "function" and opts.ft ~= nil and opts.ft ~= "" then
-            if not opts.preview.filetype_hook(filepath, bufnr, opts) then
-              return
-            end
-          end
-          if opts.preview.check_mime_type == true and has_file and (opts.ft == nil or opts.ft == "") then
-            -- avoid SIGABRT in buffer previewer happening with utils.get_os_command_output
-            local output = capture(string.format([[file --mime-type -b "%s"]], filepath))
-            local mime_type = vim.split(output, "/")
-            if mime_type[1] ~= "text" and mime_type[1] ~= "inode" and mime_type[2] ~= "json" then
-              if type(opts.preview.mime_hook) == "function" then
-                opts.preview.mime_hook(filepath, bufnr, opts)
-                return
-              else
-                possible_binary = true
-              end
-            end
-            if mime_type[2] == "json" then
-              opts.ft = "json"
-            end
-          end
 
-          if opts.preview.filesize_limit then
-            local mb_filesize = math.floor(stat.size / bytes_to_megabytes)
-            if mb_filesize > opts.preview.filesize_limit then
-              if type(opts.preview.filesize_hook) == "function" then
-                opts.preview.filesize_hook(filepath, bufnr, opts)
-              else
-                putils.set_preview_message(
-                  bufnr,
-                  opts.winid,
-                  "File exceeds preview size limit",
-                  opts.preview.msg_bg_fillchar
-                )
-              end
-              return
-            end
-          end
+  local input = direction > 0 and [[zl]] or [[zh]]
+  local count = math.abs(direction)
 
-          opts.start_time = vim.loop.hrtime()
-          Path:new(filepath):_read_async(vim.schedule_wrap(function(data)
-            if not vim.api.nvim_buf_is_valid(bufnr) then
-              return
-            end
-            local processed_data = split(data, "[\r]?\n", _, opts)
-
-            if processed_data then
-              local ok = pcall(vim.api.nvim_buf_set_lines, bufnr, 0, -1, false, processed_data)
-              if not ok then
-                return
-              end
-              -- last resort, if ft is still empty at this point in time,
-              -- we need to determine the filetype using the buffer contents
-              if opts.ft == nil or opts.ft == "" then
-                opts.ft = vim.filetype.match { filename = filepath, buf = bufnr }
-              end
-              -- we need to attempt to call filetype hook at this point "again"
-              -- previously only if we had a valid filetype, now every time
-              -- also if there will never be a filetype
-              if type(opts.preview.filetype_hook) == "function" then
-                if not opts.preview.filetype_hook(filepath, bufnr, opts) then
-                  return
-                end
-              end
-              -- if we still dont have a ft we need to display the binary message
-              if (opts.ft == nil or opts.ft == "") and possible_binary then
-                putils.set_preview_message(
-                  bufnr,
-                  opts.winid,
-                  "Binary cannot be previewed",
-                  opts.preview.msg_bg_fillchar
-                )
-                return
-              end
-
-              if opts.callback then
-                opts.callback(bufnr)
-              end
-              putils.highlighter(bufnr, opts.ft, opts)
-            else
-              if type(opts.preview.timeout_hook) == "function" then
-                opts.preview.timeout_hook(filepath, bufnr, opts)
-              else
-                putils.set_preview_message(bufnr, opts.winid, "Previewer timed out", opts.preview.msg_bg_fillchar)
-              end
-              return
-            end
-          end))
-        end)
-      end
-    end)
-  else
-    if opts.callback then
-      if vim.in_fast_event() then
-        vim.schedule(function()
-          opts.callback(bufnr)
-        end)
-      else
-        opts.callback(bufnr)
-      end
-    end
-  end
+  vim.api.nvim_win_call(self.state.winid, function()
+    vim.cmd([[normal! ]] .. count .. input)
+  end)
 end
 
 previewers.new_buffer_previewer = function(opts)
@@ -462,6 +472,10 @@ previewers.new_buffer_previewer = function(opts)
     opts.scroll_fn = scroll_fn
   end
 
+  if not opts.scroll_horizontal_fn then
+    opts.scroll_horizontal_fn = scroll_horizontal_fn
+  end
+
   return Previewer:new(opts)
 end
 
@@ -497,11 +511,34 @@ previewers.vimgrep = defaulter(function(opts)
   opts = opts or {}
   local cwd = opts.cwd or vim.loop.cwd()
 
-  local jump_to_line = function(self, bufnr, lnum)
+  local jump_to_line = function(self, bufnr, entry)
     pcall(vim.api.nvim_buf_clear_namespace, bufnr, ns_previewer, 0, -1)
-    if lnum and lnum > 0 then
-      pcall(vim.api.nvim_buf_add_highlight, bufnr, ns_previewer, "TelescopePreviewLine", lnum - 1, 0, -1)
-      pcall(vim.api.nvim_win_set_cursor, self.state.winid, { lnum, 0 })
+
+    if entry.lnum and entry.lnum > 0 then
+      local lnum, lnend = entry.lnum - 1, (entry.lnend or entry.lnum) - 1
+
+      local col, colend = 0, -1
+      -- Both col delimiters should be provided for them to take effect.
+      -- This is to ensure that column range highlighting was opted in, as `col`
+      -- is already used to determine the buffer jump position elsewhere.
+      if entry.col and entry.colend then
+        col, colend = entry.col - 1, entry.colend - 1
+      end
+
+      for i = lnum, lnend do
+        pcall(
+          vim.api.nvim_buf_add_highlight,
+          bufnr,
+          ns_previewer,
+          "TelescopePreviewLine",
+          i,
+          i == lnum and col or 0,
+          i == lnend and colend or -1
+        )
+      end
+
+      local middle_ln = math.floor(lnum + (lnend - lnum) / 2)
+      pcall(vim.api.nvim_win_set_cursor, self.state.winid, { middle_ln + 1, 0 })
       vim.api.nvim_buf_call(bufnr, function()
         vim.cmd "norm! zz"
       end)
@@ -533,14 +570,14 @@ previewers.vimgrep = defaulter(function(opts)
       if entry.bufnr and (p == "[No Name]" or has_buftype) then
         local lines = vim.api.nvim_buf_get_lines(entry.bufnr, 0, -1, false)
         vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, lines)
-        jump_to_line(self, self.state.bufnr, entry.lnum)
+        jump_to_line(self, self.state.bufnr, entry)
       else
         conf.buffer_previewer_maker(p, self.state.bufnr, {
           bufname = self.state.bufname,
           winid = self.state.winid,
           preview = opts.preview,
           callback = function(bufnr)
-            jump_to_line(self, bufnr, entry.lnum)
+            jump_to_line(self, bufnr, entry)
           end,
           file_encoding = opts.file_encoding,
         })
@@ -744,8 +781,7 @@ previewers.git_branch_log = defaulter(function(opts)
     end,
 
     define_preview = function(self, entry)
-      local cmd = {
-        "git",
+      local cmd = git_command({
         "--no-pager",
         "log",
         "--graph",
@@ -753,7 +789,7 @@ previewers.git_branch_log = defaulter(function(opts)
         "--abbrev-commit",
         "--date=relative",
         entry.value,
-      }
+      }, opts)
 
       putils.job_maker(cmd, self.state.bufnr, {
         value = entry.value,
@@ -778,7 +814,8 @@ previewers.git_stash_diff = defaulter(function(opts)
     end,
 
     define_preview = function(self, entry, _)
-      putils.job_maker({ "git", "--no-pager", "stash", "show", "-p", entry.value }, self.state.bufnr, {
+      local cmd = git_command({ "--no-pager", "stash", "show", "-p", entry.value }, opts)
+      putils.job_maker(cmd, self.state.bufnr, {
         value = entry.value,
         bufname = self.state.bufname,
         cwd = opts.cwd,
@@ -801,7 +838,7 @@ previewers.git_commit_diff_to_parent = defaulter(function(opts)
     end,
 
     define_preview = function(self, entry)
-      local cmd = { "git", "--no-pager", "diff", entry.value .. "^!" }
+      local cmd = git_command({ "--no-pager", "diff", entry.value .. "^!" }, opts)
       if opts.current_file then
         table.insert(cmd, "--")
         table.insert(cmd, opts.current_file)
@@ -832,7 +869,7 @@ previewers.git_commit_diff_to_head = defaulter(function(opts)
     end,
 
     define_preview = function(self, entry)
-      local cmd = { "git", "--no-pager", "diff", "--cached", entry.value }
+      local cmd = git_command({ "--no-pager", "diff", "--cached", entry.value }, opts)
       if opts.current_file then
         table.insert(cmd, "--")
         table.insert(cmd, opts.current_file)
@@ -863,7 +900,7 @@ previewers.git_commit_diff_as_was = defaulter(function(opts)
     end,
 
     define_preview = function(self, entry)
-      local cmd = { "git", "--no-pager", "show" }
+      local cmd = git_command({ "--no-pager", "show" }, opts)
       local cf = opts.current_file and Path:new(opts.current_file):make_relative(opts.cwd)
       local value = cf and (entry.value .. ":" .. cf) or entry.value
       local ft = cf and putils.filetype_detect(value) or "diff"
@@ -897,7 +934,7 @@ previewers.git_commit_message = defaulter(function(opts)
     end,
 
     define_preview = function(self, entry)
-      local cmd = { "git", "--no-pager", "log", "-n 1", entry.value }
+      local cmd = git_command({ "--no-pager", "log", "-n 1", entry.value }, opts)
 
       putils.job_maker(cmd, self.state.bufnr, {
         value = entry.value,
@@ -937,7 +974,8 @@ previewers.git_file_diff = defaulter(function(opts)
           winid = self.state.winid,
         })
       else
-        putils.job_maker({ "git", "--no-pager", "diff", "HEAD", "--", entry.value }, self.state.bufnr, {
+        local cmd = git_command({ "--no-pager", "diff", "HEAD", "--", entry.value }, opts)
+        putils.job_maker(cmd, self.state.bufnr, {
           value = entry.value,
           bufname = self.state.bufname,
           cwd = opts.cwd,

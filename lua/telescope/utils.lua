@@ -173,8 +173,9 @@ utils.is_path_hidden = function(opts, path_display)
     or type(path_display) == "table" and (vim.tbl_contains(path_display, "hidden") or path_display.hidden)
 end
 
-local is_uri = function(filename)
-  return string.match(filename, "^%w+://") ~= nil
+local URI_SCHEME_PATTERN = "^([a-zA-Z]+[a-zA-Z0-9.+-]*):.*"
+utils.is_uri = function(filename)
+  return filename:match(URI_SCHEME_PATTERN) ~= nil
 end
 
 local calc_result_length = function(truncate_len)
@@ -197,7 +198,7 @@ utils.transform_path = function(opts, path)
   if path == nil then
     return
   end
-  if is_uri(path) then
+  if utils.is_uri(path) then
     return path
   end
 
@@ -515,6 +516,24 @@ utils.__warn_no_selection = function(name)
     msg = "Nothing currently selected",
     level = "WARN",
   })
+end
+
+--- Generate git command optionally with git env variables
+---@param args string[]
+---@param opts? table
+---@return string[]
+utils.__git_command = function(args, opts)
+  opts = opts or {}
+
+  local _args = { "git" }
+  if opts.gitdir then
+    vim.list_extend(_args, { "--git-dir", opts.gitdir })
+  end
+  if opts.toplevel then
+    vim.list_extend(_args, { "--work-tree", opts.toplevel })
+  end
+
+  return vim.list_extend(_args, args)
 end
 
 return utils

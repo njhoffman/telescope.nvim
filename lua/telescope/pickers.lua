@@ -430,7 +430,7 @@ function Picker:find()
       -- always fully retrigger insert mode: required for going from one picker to next
       keys = mode ~= "n" and "<ESC>A" or "A"
     end
-    a.nvim_feedkeys(a.nvim_replace_termcodes(keys, true, false, true), "n", true)
+    a.nvim_feedkeys(a.nvim_replace_termcodes(keys, true, false, true), "ni", true)
   else
     utils.notify("pickers.find", { msg = "`initial_mode` should be one of ['normal', 'insert'] but passed " .. self.initial_mode, level = "ERROR" })
   end
@@ -774,7 +774,7 @@ function Picker:get_selection_row()
     end
     return self._selection_row
   end
-  return self.max_results
+  return self:get_reset_row()
 end
 
 --- Move the current selection by `change` steps
