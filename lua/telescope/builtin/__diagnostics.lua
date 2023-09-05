@@ -87,6 +87,9 @@ local diagnostics_to_tbl = function(opts)
       diagnosis_opts.severity["max"] = opts.severity_bound
     end
   end
+  if vim.version().minor > 9 and vim.tbl_isempty(diagnosis_opts.severity) then
+    diagnosis_opts.severity = nil
+  end
 
   opts.root_dir = opts.root_dir == true and vim.loop.cwd() or opts.root_dir
 
@@ -143,6 +146,14 @@ diagnostics.get = function(opts)
     utils.notify("builtin.diagnostics", {
       msg = "No diagnostics found",
       level = "INFO",
+    })
+    return
+  end
+
+  if type(opts.line_width) == "string" and opts.line_width ~= "full" then
+    utils.notify("builtin.diagnostics", {
+      msg = string.format("'%s' is not a valid value for line_width", opts.line_width),
+      level = "ERROR",
     })
     return
   end

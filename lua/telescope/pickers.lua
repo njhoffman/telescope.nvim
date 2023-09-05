@@ -1207,7 +1207,7 @@ end
 
 --- Close all open Telescope pickers
 function Picker:close_existing_pickers()
-  for _, prompt_bufnr in ipairs(state.get_existing_prompts()) do
+  for _, prompt_bufnr in ipairs(state.get_existing_prompt_bufnrs()) do
     pcall(actions.close, prompt_bufnr)
   end
 end
@@ -1313,7 +1313,7 @@ function Picker:get_result_completor(results_bufnr, find_id, prompt, status_upda
     self:clear_extra_rows(results_bufnr)
     self.sorter:_finish(prompt)
 
-    if self.wrap_results and self.sorting_strategy == "descending" then
+    if self.sorting_strategy == "descending" then
       local visible_result_rows = vim.api.nvim_win_get_height(self.results_win)
       vim.api.nvim_win_set_cursor(self.results_win, { self.max_results - visible_result_rows, 1 })
       vim.api.nvim_win_set_cursor(self.results_win, { self.max_results, 1 })
