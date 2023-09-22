@@ -182,8 +182,8 @@ local handle_file_preview = function(filepath, bufnr, stat, opts)
       end
     end
 
+    local mb_filesize = stat.size / bytes_to_megabytes
     if opts.preview.filesize_limit then
-      local mb_filesize = math.floor(stat.size / bytes_to_megabytes)
       if mb_filesize > opts.preview.filesize_limit then
         if type(opts.preview.filesize_hook) == "function" then
           opts.preview.filesize_hook(filepath, bufnr, opts)
@@ -228,7 +228,10 @@ local handle_file_preview = function(filepath, bufnr, stat, opts)
         if opts.callback then
           opts.callback(bufnr)
         end
-        putils.highlighter(bufnr, opts.ft, opts)
+
+        if not (opts.preview.highlight_limit and mb_filesize > opts.preview.highlight_limit) then
+          putils.highlighter(bufnr, opts.ft, opts)
+        end
       else
         if type(opts.preview.timeout_hook) == "function" then
           opts.preview.timeout_hook(filepath, bufnr, opts)
@@ -243,12 +246,14 @@ end
 
 local PREVIEW_TIMEOUT_MS = 250
 local PREVIEW_FILESIZE_MB = 25
+local PREVIEW_HIGHLIGHT_MB = 1
 
 previewers.file_maker = function(filepath, bufnr, opts)
   opts = vim.F.if_nil(opts, {})
   opts.preview = vim.F.if_nil(opts.preview, {})
   opts.preview.timeout = vim.F.if_nil(opts.preview.timeout, PREVIEW_TIMEOUT_MS)
   opts.preview.filesize_limit = vim.F.if_nil(opts.preview.filesize_limit, PREVIEW_FILESIZE_MB)
+  opts.preview.highlight_limit = vim.F.if_nil(opts.preview.highlight_limit, PREVIEW_HIGHLIGHT_MB)
   opts.preview.msg_bg_fillchar = vim.F.if_nil(opts.preview.msg_bg_fillchar, "╱")
   opts.preview.treesitter = vim.F.if_nil(opts.preview.treesitter, true)
   if opts.use_ft_detect == nil then
@@ -409,32 +414,33 @@ previewers.new_buffer_previewer = function(opts)
   end
 
   function opts.preview_fn(self, entry, status)
+    local preview_winid = status.layout.preview and status.layout.preview.winid
     if get_bufnr(self) == nil then
-      set_bufnr(self, vim.api.nvim_win_get_buf(status.preview_win))
-      preview_window_id = status.preview_win
+      set_bufnr(self, vim.api.nvim_win_get_buf(preview_winid))
+      preview_window_id = preview_winid
     end
 
     if opts.get_buffer_by_name and get_bufnr_by_bufname(self, opts.get_buffer_by_name(self, entry)) then
       self.state.bufname = opts.get_buffer_by_name(self, entry)
       self.state.bufnr = get_bufnr_by_bufname(self, self.state.bufname)
-      utils.win_set_buf_noautocmd(status.preview_win, self.state.bufnr)
+      utils.win_set_buf_noautocmd(preview_winid, self.state.bufnr)
     else
       local bufnr = vim.api.nvim_create_buf(false, true)
       set_bufnr(self, bufnr)
 
       vim.schedule(function()
         if vim.api.nvim_buf_is_valid(bufnr) then
-          utils.win_set_buf_noautocmd(status.preview_win, bufnr)
+          utils.win_set_buf_noautocmd(preview_winid, bufnr)
         end
       end)
 
-      vim.api.nvim_win_set_option(status.preview_win, "winhl", "Normal:TelescopePreviewNormal")
-      vim.api.nvim_win_set_option(status.preview_win, "signcolumn", "no")
-      vim.api.nvim_win_set_option(status.preview_win, "foldlevel", 100)
-      vim.api.nvim_win_set_option(status.preview_win, "wrap", false)
-      vim.api.nvim_win_set_option(status.preview_win, "scrollbind", false)
+      vim.api.nvim_win_set_option(preview_winid, "winhl", "Normal:TelescopePreviewNormal")
+      vim.api.nvim_win_set_option(preview_winid, "signcolumn", "no")
+      vim.api.nvim_win_set_option(preview_winid, "foldlevel", 100)
+      vim.api.nvim_win_set_option(preview_winid, "wrap", false)
+      vim.api.nvim_win_set_option(preview_winid, "scrollbind", false)
 
-      self.state.winid = status.preview_win
+      self.state.winid = preview_winid
       self.state.bufname = nil
     end
 
@@ -1012,13 +1018,15 @@ previewers.autocommands = defaulter(function(_)
         pcall(vim.api.nvim_buf_clear_namespace, self.state.last_set_bufnr, ns_previewer, 0, -1)
       end
 
+      local preview_winid = status.layout.preview and status.layout.preview.winid
+
       local selected_row = 0
       if self.state.bufname ~= entry.value.group_name then
         local display = {}
         table.insert(display, string.format(" augroup: %s - [ %d entries ]", entry.value.group_name, #results))
         -- TODO: calculate banner width/string in setup()
         -- TODO: get column characters to be the same HL group as border
-        table.insert(display, string.rep("─", vim.fn.getwininfo(status.preview_win)[1].width))
+        table.insert(display, string.rep("─", vim.fn.getwininfo(preview_winid)[1].width))
 
         for idx, item in ipairs(results) do
           if item == entry then
@@ -1046,7 +1054,7 @@ previewers.autocommands = defaulter(function(_)
       -- set the cursor position after self.state.bufnr is connected to the
       -- preview window (which is scheduled in new_buffer_previewer)
       vim.schedule(function()
-        pcall(vim.api.nvim_win_set_cursor, status.preview_win, { selected_row, 0 })
+        pcall(vim.api.nvim_win_set_cursor, preview_winid, { selected_row, 0 })
       end)
 
       self.state.last_set_bufnr = self.state.bufnr
