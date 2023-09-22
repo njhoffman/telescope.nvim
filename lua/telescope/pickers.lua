@@ -141,7 +141,11 @@ function Picker:new(opts)
       obj.all_previewers = { obj.all_previewers }
     end
     obj.previewer = obj.all_previewers[obj.current_previewer_index]
-    if obj.preview_title == nil or #obj.all_previewers > 1 then
+    if
+      obj.preview_title == nil
+      or #obj.all_previewers > 1
+      or opts.resumed_picker and opts.fix_preview_title ~= true
+    then
       obj.preview_title = obj.previewer:title(nil, config.values.dynamic_preview_title)
     else
       obj.fix_preview_title = true
@@ -1489,7 +1493,10 @@ end
 
 --- Get the prompt text without the prompt prefix.
 function Picker:_get_prompt()
-  return vim.api.nvim_buf_get_lines(self.prompt_bufnr, 0, 1, false)[1]:sub(#self.prompt_prefix + 1)
+  local cursor_line = vim.api.nvim_win_get_cursor(self.prompt_win)[1] - 1
+  return vim.api
+    .nvim_buf_get_lines(self.prompt_bufnr, cursor_line, cursor_line + 1, false)[1]
+    :sub(#self.prompt_prefix + 1)
 end
 
 function Picker:_reset_highlights()
