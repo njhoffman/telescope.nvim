@@ -317,8 +317,13 @@ function Picker:new(opts)
     cache_picker = config.resolve_table_opts(opts.cache_picker, vim.deepcopy(config.values.cache_picker)),
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     __scrolling_limit = tonumber(vim.F.if_nil(opts.temp__scrolling_limit, 250)),
 ||||||| parent of 61bea24 (rever formatting)
+||||||| parent of 9b84f38 (revert formatting)
+=======
+<<<<<<< HEAD
+>>>>>>> 9b84f38 (revert formatting)
     __scrolling_limit = tonumber(vim.F.if_nil(opts.temp__scrolling_limit, config.values.scrolling_limit)),
 =======
 <<<<<<< HEAD
@@ -339,6 +344,20 @@ function Picker:new(opts)
     __scrolling_limit = tonumber(vim.F.if_nil(opts.temp__scrolling_limit, 250)),
   }, self)
 >>>>>>> f834611 (rever formatting)
+||||||| parent of 7eab219 (revert formatting)
+        __scrolling_limit = tonumber(
+          vim.F.if_nil(
+            opts.temp__scrolling_limit,
+            250
+          )
+        ),
+      },
+      self
+    )
+=======
+    __scrolling_limit = tonumber(vim.F.if_nil(opts.temp__scrolling_limit, 250)),
+  }, self)
+>>>>>>> 7eab219 (revert formatting)
 
   obj.create_layout = opts.create_layout or config.values.create_layout or default_create_layout
   obj.get_window_options = opts.get_window_options or p_window.get_window_options
