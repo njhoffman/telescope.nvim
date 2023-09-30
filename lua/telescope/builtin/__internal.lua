@@ -161,6 +161,7 @@ internal.resume = function(opts)
     picker.hidden_previewer = nil
     opts.previewer = vim.F.if_nil(opts.previewer, false)
   end
+  opts.resumed_picker = true
   pickers.new(opts, picker):find()
 end
 
@@ -990,8 +991,10 @@ internal.colorscheme = function(opts)
         preview_fn = function(_, entry, status)
           if not deleted then
             deleted = true
-            del_win(status.preview_win)
-            del_win(status.preview_border_win)
+            if status.layout.preview then
+              del_win(status.layout.preview.winid)
+              del_win(status.layout.preview.border.winid)
+            end
           end
           vim.cmd("colorscheme " .. entry.value)
         end,

@@ -668,6 +668,43 @@ actions.git_switch_branch = function(prompt_bufnr)
   end
 end
 
+--- Action to rename selected git branch
+--- @param prompt_bufnr number: The prompt bufnr
+actions.git_rename_branch = function(prompt_bufnr)
+  local cwd = action_state.get_current_picker(prompt_bufnr).cwd
+  local selection = action_state.get_selected_entry()
+  if selection == nil then
+    utils.__warn_no_selection "actions.git_rename_branch"
+    return
+  end
+  -- Keeps the selected branch name for the input that asks for the new branch name
+  local new_branch = vim.fn.input("New branch name: ", selection.value)
+  if new_branch == "" then
+    utils.notify("actions.git_rename_branch", {
+      msg = "Missing the new branch name",
+      level = "ERROR",
+    })
+  else
+    actions.close(prompt_bufnr)
+    local _, ret, stderr = utils.get_os_command_output({ "git", "branch", "-m", selection.value, new_branch }, cwd)
+    if ret == 0 then
+      utils.notify("actions.git_rename_branch", {
+        msg = string.format("Renamed branch: '%s'", selection.value),
+        level = "INFO",
+      })
+    else
+      utils.notify("actions.git_rename_branch", {
+        msg = string.format(
+          "Error when renaming branch: %s. Git returned: '%s'",
+          selection.value,
+          table.concat(stderr, " ")
+        ),
+        level = "ERROR",
+      })
+    end
+  end
+end
+
 local function make_git_branch_action(opts)
   return function(prompt_bufnr)
     local cwd = action_state.get_current_picker(prompt_bufnr).cwd
@@ -889,6 +926,7 @@ local send_selected_to_qf = function(prompt_bufnr, mode, target)
   local prompt = picker:_get_prompt()
   actions.close(prompt_bufnr)
 
+  vim.api.nvim_exec_autocmds("QuickFixCmdPre", {})
   if target == "loclist" then
     vim.fn.setloclist(picker.original_win_id, qf_entries, mode)
   else
@@ -896,6 +934,7 @@ local send_selected_to_qf = function(prompt_bufnr, mode, target)
     vim.fn.setqflist(qf_entries, mode)
     vim.fn.setqflist({}, "a", { title = qf_title })
   end
+  vim.api.nvim_exec_autocmds("QuickFixCmdPost", {})
 end
 
 local send_all_to_qf = function(prompt_bufnr, mode, target)
@@ -910,6 +949,7 @@ local send_all_to_qf = function(prompt_bufnr, mode, target)
   local prompt = picker:_get_prompt()
   actions.close(prompt_bufnr)
 
+  vim.api.nvim_exec_autocmds("QuickFixCmdPre", {})
   if target == "loclist" then
     vim.fn.setloclist(picker.original_win_id, qf_entries, mode)
   else
@@ -917,6 +957,7 @@ local send_all_to_qf = function(prompt_bufnr, mode, target)
     local qf_title = string.format([[%s (%s)]], picker.prompt_title, prompt)
     vim.fn.setqflist({}, "a", { title = qf_title })
   end
+  vim.api.nvim_exec_autocmds("QuickFixCmdPost", {})
 end
 
 --- Sends the selected entries to the quickfix list, replacing the previous entries.
