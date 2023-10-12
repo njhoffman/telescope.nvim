@@ -44,6 +44,8 @@ This section should guide you to run your first builtin pickers.
 
 [Neovim (v0.9.0)](https://github.com/neovim/neovim/releases/tag/v0.9.0) or the
 latest neovim nightly commit is required for `telescope.nvim` to work.
+The neovim version also needs to be compiled with LuaJIT, we currently do not
+support Lua5.1 because of some ongoing issues.
 
 ### Required dependencies
 
@@ -83,7 +85,7 @@ Using [vim-plug](https://github.com/junegunn/vim-plug)
 
 ```viml
 Plug 'nvim-lua/plenary.nvim'
-Plug 'nvim-telescope/telescope.nvim', { 'tag': '0.1.3' }
+Plug 'nvim-telescope/telescope.nvim', { 'tag': '0.1.4' }
 " or                                , { 'branch': '0.1.x' }
 ```
 
@@ -91,14 +93,14 @@ Using [dein](https://github.com/Shougo/dein.vim)
 
 ```viml
 call dein#add('nvim-lua/plenary.nvim')
-call dein#add('nvim-telescope/telescope.nvim', { 'rev': '0.1.3' })
+call dein#add('nvim-telescope/telescope.nvim', { 'rev': '0.1.4' })
 " or                                         , { 'rev': '0.1.x' })
 ```
 Using [packer.nvim](https://github.com/wbthomason/packer.nvim)
 
 ```lua
 use {
-  'nvim-telescope/telescope.nvim', tag = '0.1.3',
+  'nvim-telescope/telescope.nvim', tag = '0.1.4',
 -- or                            , branch = '0.1.x',
   requires = { {'nvim-lua/plenary.nvim'} }
 }
@@ -109,14 +111,14 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim)
 ```lua
 -- init.lua:
     {
-    'nvim-telescope/telescope.nvim', tag = '0.1.3',
+    'nvim-telescope/telescope.nvim', tag = '0.1.4',
 -- or                              , branch = '0.1.x',
       dependencies = { 'nvim-lua/plenary.nvim' }
     }
 
 -- plugins/telescope.lua:
 return {
-    'nvim-telescope/telescope.nvim', tag = '0.1.3',
+    'nvim-telescope/telescope.nvim', tag = '0.1.4',
 -- or                              , branch = '0.1.x',
       dependencies = { 'nvim-lua/plenary.nvim' }
     }
@@ -254,7 +256,7 @@ Many familiar mapping patterns are set up as defaults.
 | `<M-k>`        | Scroll right in results window                       |
 | `<C-/>`        | Show mappings for picker actions (insert mode)       |
 | `?`            | Show mappings for picker actions (normal mode)       |
-| `<C-c>`        | Close telescope                                      |
+| `<C-c>`        | Close telescope (insert mode)                        |
 | `<Esc>`        | Close telescope (in normal mode)                     |
 | `<Tab>`        | Toggle selection and move to next selection          |
 | `<S-Tab>`      | Toggle selection and move to prev selection          |
