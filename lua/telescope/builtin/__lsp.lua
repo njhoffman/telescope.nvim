@@ -47,6 +47,8 @@ lsp.references = function(opts)
           vim.cmd "new"
         elseif opts.jump_type == "vsplit" then
           vim.cmd "vnew"
+        elseif opts.jump_type == "tab drop" then
+          vim.cmd("tab drop " .. locations[1].filename)
         end
       end
       -- jump to location
@@ -197,6 +199,13 @@ local function list_or_jump(action, title, opts)
           vim.cmd "new"
         elseif opts.jump_type == "vsplit" then
           vim.cmd "vnew"
+        elseif opts.jump_type == "tab drop" then
+          local file_uri = flattened_results[1].uri
+          if file_uri == nil then
+            file_uri = flattened_results[1].targetUri
+          end
+          local file_path = vim.uri_to_fname(file_uri)
+          vim.cmd("tab drop " .. file_path)
         end
       end
 

@@ -1437,6 +1437,8 @@ builtin.marks({opts})                              *telescope.builtin.marks()*
 
     Options: ~
         {file_encoding} (string)  file encoding for the previewer
+        {mark_type}     (string)  filter marks by type (default: "all",
+                                  options: "all"|"global"|"local")
 
 
 builtin.registers({opts})                      *telescope.builtin.registers()*
@@ -1549,8 +1551,8 @@ builtin.lsp_references({opts})            *telescope.builtin.lsp_references()*
         {jump_type}            (string)   how to goto reference if there is
                                           only one and the definition file is
                                           different from the current file,
-                                          values: "tab", "split", "vsplit",
-                                          "never"
+                                          values: "tab", "tab drop", "split",
+                                          "vsplit", "never"
         {fname_width}          (number)   defines the width of the filename
                                           section (default: 30)
         {show_line}            (boolean)  show results text (default: true)
@@ -1601,8 +1603,8 @@ builtin.lsp_definitions({opts})          *telescope.builtin.lsp_definitions()*
     Options: ~
         {jump_type}     (string)   how to goto definition if there is only one
                                    and the definition file is different from
-                                   the current file, values: "tab", "split",
-                                   "vsplit", "never"
+                                   the current file, values: "tab", "tab
+                                   drop", "split", "vsplit", "never"
         {fname_width}   (number)   defines the width of the filename section
                                    (default: 30)
         {show_line}     (boolean)  show results text (default: true)
@@ -1623,8 +1625,8 @@ builtin.lsp_type_definitions({opts}) *telescope.builtin.lsp_type_definitions()*
     Options: ~
         {jump_type}     (string)   how to goto definition if there is only one
                                    and the definition file is different from
-                                   the current file, values: "tab", "split",
-                                   "vsplit", "never"
+                                   the current file, values: "tab", "tab
+                                   drop", "split", "vsplit", "never"
         {fname_width}   (number)   defines the width of the filename section
                                    (default: 30)
         {show_line}     (boolean)  show results text (default: true)
@@ -1645,8 +1647,8 @@ builtin.lsp_implementations({opts})  *telescope.builtin.lsp_implementations()*
     Options: ~
         {jump_type}     (string)   how to goto implementation if there is only
                                    one and the definition file is different
-                                   from the current file, values: "tab",
-                                   "split", "vsplit", "never"
+                                   from the current file, values: "tab", "tab
+                                   drop", "split", "vsplit", "never"
         {fname_width}   (number)   defines the width of the filename section
                                    (default: 30)
         {show_line}     (boolean)  show results text (default: true)
