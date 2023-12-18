@@ -1328,12 +1328,12 @@ function Picker:get_status_updater(prompt_win, prompt_bufnr)
       return
     end
 
-    local current_prompt = self:_get_prompt()
-    if not current_prompt then
+    if not vim.api.nvim_win_is_valid(prompt_win) then
       return
     end
 
-    if not vim.api.nvim_win_is_valid(prompt_win) then
+    local current_prompt = self:_get_prompt()
+    if not current_prompt then
       return
     end
 
