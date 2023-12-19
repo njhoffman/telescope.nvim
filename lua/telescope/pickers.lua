@@ -1594,10 +1594,12 @@ end
 
 --- Get the prompt text without the prompt prefix.
 function Picker:_get_prompt()
-  local cursor_line = vim.api.nvim_win_get_cursor(self.prompt_win)[1] - 1
-  return vim.api
-    .nvim_buf_get_lines(self.prompt_bufnr, cursor_line, cursor_line + 1, false)[1]
-    :sub(#self.prompt_prefix + 1)
+  if vim.api.nvim_win_is_valid(self.prompt_win) then
+    local cursor_line = vim.api.nvim_win_get_cursor(self.prompt_win)[1] - 1
+    return vim.api
+      .nvim_buf_get_lines(self.prompt_bufnr, cursor_line, cursor_line + 1, false)[1]
+      :sub(#self.prompt_prefix + 1)
+  end
 end
 
 function Picker:_reset_highlights()

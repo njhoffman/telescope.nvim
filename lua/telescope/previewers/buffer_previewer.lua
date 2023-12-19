@@ -416,6 +416,9 @@ previewers.new_buffer_previewer = function(opts)
 
   function opts.preview_fn(self, entry, status)
     local preview_winid = status.layout.preview and status.layout.preview.winid
+    if not preview_winid or not vim.api.nvim_win_is_valid(preview_winid) then
+      return
+    end
     if get_bufnr(self) == nil then
       set_bufnr(self, vim.api.nvim_win_get_buf(preview_winid))
       preview_window_id = preview_winid
@@ -430,7 +433,7 @@ previewers.new_buffer_previewer = function(opts)
       set_bufnr(self, bufnr)
 
       vim.schedule(function()
-        if vim.api.nvim_buf_is_valid(bufnr) then
+        if vim.api.nvim_buf_is_valid(bufnr) then 
           utils.win_set_buf_noautocmd(preview_winid, bufnr)
         end
       end)
