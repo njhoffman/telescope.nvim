@@ -365,12 +365,13 @@ git.status = function(opts)
     return
   end
 
+  local args = { "status", "--porcelain=v1", "--", "." }
+
   local gen_new_finder = function()
-    local expand_dir = vim.F.if_nil(opts.expand_dir, true)
-    local git_cmd = git_command({ "status", "--porcelain=v1", "--", "." }, opts)
-    if expand_dir then
-      table.insert(git_cmd, #git_cmd - 1, "-u")
+    if vim.F.if_nil(opts.expand_dir, true) then
+      table.insert(args, #args - 1, "-uall")
     end
+    local git_cmd = git_command(args, opts)
     opts.entry_maker = vim.F.if_nil(opts.entry_maker, make_entry.gen_from_git_status(opts))
     return finders.new_oneshot_job(git_cmd, opts)
   end
@@ -389,7 +390,8 @@ git.status = function(opts)
       on_complete = {
         function(self)
           local lines = self.manager:num_results()
-          if lines == 0 then
+          local prompt = action_state.get_current_line()
+          if lines == 0 and prompt == "" then
             utils.notify("builtin.git_status", {
               msg = "No changes found",
               level = "ERROR",
