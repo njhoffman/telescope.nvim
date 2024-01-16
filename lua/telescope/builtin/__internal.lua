@@ -26,6 +26,15 @@ local function apply_cwd_only_aliases(opts)
   return opts
 end
 
+---@return boolean
+local function buf_in_cwd(bufname, cwd)
+  if cwd:sub(-1) ~= Path.path.sep then
+    cwd = cwd .. Path.path.sep
+  end
+  local bufname_prefix = bufname:sub(1, #cwd)
+  return bufname_prefix == cwd
+end
+
 local internal = {}
 
 internal.builtin = function(opts)
@@ -544,19 +553,20 @@ internal.oldfiles = function(opts)
     cwd = cwd .. utils.get_separator()
     cwd = cwd:gsub([[\]], [[\\]])
     results = vim.tbl_filter(function(file)
-      return vim.fn.matchstrpos(file, cwd)[2] ~= -1
+      return buf_in_cwd(file, cwd)
     end, results)
   end
 
   pickers
     .new(opts, {
       prompt_title = "Oldfiles",
+      __locations_input = true,
       finder = finders.new_table {
         results = results,
         entry_maker = opts.entry_maker or make_entry.gen_from_file(opts),
       },
       sorter = conf.file_sorter(opts),
-      previewer = conf.file_previewer(opts),
+      previewer = conf.grep_previewer(opts),
     })
     :find()
 end
@@ -882,14 +892,6 @@ end
 internal.buffers = function(opts)
   opts = apply_cwd_only_aliases(opts)
 
-  local function buf_not_in_cwd(bufnr, cwd)
-    if cwd:sub(-1) ~= Path.path.sep then
-      cwd = cwd .. Path.path.sep
-    end
-    local bufname_prefix = vim.api.nvim_buf_get_name(bufnr):sub(1, #cwd)
-    return bufname_prefix ~= cwd
-  end
-
   local bufnrs = vim.tbl_filter(function(bufnr)
     if 1 ~= vim.fn.buflisted(bufnr) then
       return false
@@ -901,10 +903,13 @@ internal.buffers = function(opts)
     if opts.ignore_current_buffer and bufnr == vim.api.nvim_get_current_buf() then
       return false
     end
-    if opts.cwd_only and buf_not_in_cwd(bufnr, vim.loop.cwd()) then
+
+    local bufname = vim.api.nvim_buf_get_name(bufnr)
+
+    if opts.cwd_only and not buf_in_cwd(bufname, vim.loop.cwd()) then
       return false
     end
-    if not opts.cwd_only and opts.cwd and buf_not_in_cwd(bufnr, opts.cwd) then
+    if not opts.cwd_only and opts.cwd and not buf_in_cwd(bufname, opts.cwd) then
       return false
     end
     return true
@@ -1109,7 +1114,7 @@ internal.marks = function(opts)
         line = line,
         lnum = lnum,
         col = col,
-        filename = v.file or bufname,
+        filename = vim.fs.normalize(v.file or bufname),
       }
       -- non alphanumeric marks goes to last
       if mark:match "%w" then
