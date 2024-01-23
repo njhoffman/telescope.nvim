@@ -1575,6 +1575,9 @@ function pickers.on_close_prompt(prompt_bufnr)
       picker.cache_picker.selection_row = picker._selection_row
       picker.cache_picker.cached_prompt = picker:_get_prompt()
       picker.cache_picker.is_cached = true
+      picker.cache_picker.timestamp = os.time()
+      picker.cache_picker.cwd =  vim.fn.getcwd()
+      picker.cache_picker.project = require('project_nvim').get_project_root()
       table.insert(cached_pickers, 1, picker)
 
       -- release pickers
