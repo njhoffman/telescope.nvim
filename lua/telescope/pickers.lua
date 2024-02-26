@@ -551,7 +551,6 @@ function Picker:find()
   pcall(a.nvim_buf_set_option, self.prompt_bufnr, "tabstop", 1) -- #1834
   a.nvim_buf_set_option(self.prompt_bufnr, "buftype", "prompt")
   a.nvim_win_set_option(self.results_win, "wrap", self.wrap_results)
-  a.nvim_win_set_option(self.prompt_win, "wrap", true)
   if self.preview_win then
     a.nvim_win_set_option(self.preview_win, "wrap", true)
   end
@@ -605,6 +604,7 @@ function Picker:find()
     -- Do filetype last, so that users can register at the last second.
     pcall(a.nvim_buf_set_option, self.prompt_bufnr, "filetype", "TelescopePrompt")
     pcall(a.nvim_buf_set_option, self.results_bufnr, "filetype", "TelescopeResults")
+    a.nvim_win_set_option(self.prompt_win, "wrap", true)
 
     await_schedule()
 
@@ -1580,14 +1580,18 @@ function pickers.on_close_prompt(prompt_bufnr)
           picker.manager = EntryManager:new(picker.max_results, picker.entry_adder, picker.stats)
         end
       end
-      picker.default_text = picker:_get_prompt()
+      local curr_prompt = picker:_get_prompt()
+      picker.default_text = curr_prompt
       picker.cache_picker.selection_row = picker._selection_row
-      picker.cache_picker.cached_prompt = picker:_get_prompt()
-      picker.cache_picker.is_cached = true
-      picker.cache_picker.timestamp = os.time()
-      picker.cache_picker.cwd =  vim.fn.getcwd()
-      picker.cache_picker.project = require('project_nvim').get_project_root()
-      table.insert(cached_pickers, 1, picker)
+      -- Only cache if prompt is not empty or ignore_empty_prompt is false
+        if not picker.cache_picker.ignore_empty_prompt or (curr_prompt and curr_prompt ~= "") then
+        picker.cache_picker.cached_prompt = picker:_get_prompt()
+        picker.cache_picker.is_cached = true
+        picker.cache_picker.timestamp = os.time()
+        picker.cache_picker.cwd =  vim.fn.getcwd()
+        picker.cache_picker.project = require('project_nvim').get_project_root()
+        table.insert(cached_pickers, 1, picker)
+      end
 
       -- release pickers
       if picker.cache_picker.num_pickers > 0 then
