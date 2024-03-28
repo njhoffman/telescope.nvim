@@ -527,7 +527,7 @@ function Picker:find()
   self:reset_selection()
 
   self.original_win_id = a.nvim_get_current_win()
-  self.original_cword = vim.fn.expand "<cword>"
+  _, self.original_cword = pcall(vim.fn.expand, "<cword>")
 
   -- User autocmd run it before create Telescope window
   vim.api.nvim_exec_autocmds("User", { pattern = "TelescopeFindPre" })
@@ -551,6 +551,7 @@ function Picker:find()
   pcall(a.nvim_buf_set_option, self.prompt_bufnr, "tabstop", 1) -- #1834
   a.nvim_buf_set_option(self.prompt_bufnr, "buftype", "prompt")
   a.nvim_win_set_option(self.results_win, "wrap", self.wrap_results)
+  a.nvim_win_set_option(self.prompt_win, "wrap", true)
   if self.preview_win then
     a.nvim_win_set_option(self.preview_win, "wrap", true)
   end
@@ -604,7 +605,6 @@ function Picker:find()
     -- Do filetype last, so that users can register at the last second.
     pcall(a.nvim_buf_set_option, self.prompt_bufnr, "filetype", "TelescopePrompt")
     pcall(a.nvim_buf_set_option, self.results_bufnr, "filetype", "TelescopeResults")
-    a.nvim_win_set_option(self.prompt_win, "wrap", true)
 
     await_schedule()
 
@@ -1456,6 +1456,8 @@ function Picker:get_result_completor(results_bufnr, find_id, prompt, status_upda
       local visible_result_rows = vim.api.nvim_win_get_height(self.results_win)
       vim.api.nvim_win_set_cursor(self.results_win, { self.max_results - visible_result_rows, 1 })
       vim.api.nvim_win_set_cursor(self.results_win, { self.max_results, 1 })
+    else
+      vim.api.nvim_win_set_cursor(self.results_win, { 1, 0 })
     end
     self:_on_complete()
   end)

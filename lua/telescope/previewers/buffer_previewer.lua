@@ -262,7 +262,7 @@ previewers.file_maker = function(filepath, bufnr, opts)
   end
   if opts.bufname ~= filepath then
     if not vim.in_fast_event() then
-      filepath = vim.fn.expand(filepath)
+      filepath = utils.path_expand(filepath)
     end
     vim.loop.fs_stat(filepath, function(_, stat)
       if not stat then
@@ -498,11 +498,11 @@ previewers.cat = defaulter(function(opts)
     end,
 
     get_buffer_by_name = function(_, entry)
-      return from_entry.path(entry, false)
+      return from_entry.path(entry, false, false)
     end,
 
     define_preview = function(self, entry)
-      local p = from_entry.path(entry, true)
+      local p = from_entry.path(entry, true, false)
       if p == nil or p == "" then
         return
       end
@@ -561,7 +561,7 @@ previewers.vimgrep = defaulter(function(opts)
     end,
 
     get_buffer_by_name = function(_, entry)
-      return from_entry.path(entry, false)
+      return from_entry.path(entry, false, false)
     end,
 
     define_preview = function(self, entry)
@@ -572,7 +572,7 @@ previewers.vimgrep = defaulter(function(opts)
         or false
       local p
       if not has_buftype then
-        p = from_entry.path(entry, true)
+        p = from_entry.path(entry, true, false)
         if p == nil or p == "" then
           return
         end
@@ -714,7 +714,7 @@ previewers.help = defaulter(function(opts)
         winid = self.state.winid,
         preview = opts.preview,
         callback = function(bufnr)
-          putils.regex_highlighter(bufnr, "help")
+          putils.highlighter(bufnr, "help", opts)
           search_cb_jump(self, bufnr, query)
         end,
         file_encoding = opts.file_encoding,
@@ -741,7 +741,7 @@ previewers.man = defaulter(function(opts)
         value = entry.value .. "/" .. entry.section,
         bufname = self.state.bufname,
       })
-      putils.regex_highlighter(self.state.bufnr, "man")
+      putils.highlighter(self.state.bufnr, "man", opts)
     end,
   }
 end)
@@ -841,7 +841,7 @@ previewers.git_stash_diff = defaulter(function(opts)
         cwd = opts.cwd,
         callback = function(bufnr)
           if vim.api.nvim_buf_is_valid(bufnr) then
-            putils.regex_highlighter(bufnr, "diff")
+            putils.highlighter(bufnr, "diff", opts)
           end
         end,
       })
@@ -871,7 +871,7 @@ previewers.git_commit_diff_to_parent = defaulter(function(opts)
         callback = function(bufnr)
           if vim.api.nvim_buf_is_valid(bufnr) then
             search_cb_jump(self, bufnr, opts.current_line)
-            putils.regex_highlighter(bufnr, "diff")
+            putils.highlighter(bufnr, "diff", opts)
           end
         end,
       })
@@ -902,7 +902,7 @@ previewers.git_commit_diff_to_head = defaulter(function(opts)
         callback = function(bufnr)
           if vim.api.nvim_buf_is_valid(bufnr) then
             search_cb_jump(self, bufnr, opts.current_line)
-            putils.regex_highlighter(bufnr, "diff")
+            putils.highlighter(bufnr, "diff", opts)
           end
         end,
       })
@@ -933,7 +933,7 @@ previewers.git_commit_diff_as_was = defaulter(function(opts)
         callback = function(bufnr)
           if vim.api.nvim_buf_is_valid(bufnr) then
             search_cb_jump(self, bufnr, opts.current_line)
-            putils.regex_highlighter(bufnr, ft)
+            putils.highlighter(bufnr, ft, opts)
           end
         end,
       })
@@ -985,7 +985,7 @@ previewers.git_file_diff = defaulter(function(opts)
 
     define_preview = function(self, entry)
       if entry.status and (entry.status == "??" or entry.status == "A ") then
-        local p = from_entry.path(entry, true)
+        local p = from_entry.path(entry, true, false)
         if p == nil or p == "" then
           return
         end
@@ -1003,7 +1003,7 @@ previewers.git_file_diff = defaulter(function(opts)
           cwd = opts.cwd,
           callback = function(bufnr)
             if vim.api.nvim_buf_is_valid(bufnr) then
-              putils.regex_highlighter(bufnr, "diff")
+              putils.highlighter(bufnr, "diff", opts)
             end
           end,
         })

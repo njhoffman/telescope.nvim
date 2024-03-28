@@ -23,12 +23,14 @@ local function call_hierarchy(opts, method, title, direction, item)
     local locations = {}
     for _, ch_call in pairs(result) do
       local ch_item = ch_call[direction]
-      table.insert(locations, {
-        filename = vim.uri_to_fname(ch_item.uri),
-        text = ch_item.name,
-        lnum = ch_item.range.start.line + 1,
-        col = ch_item.range.start.character + 1,
-      })
+      for _, rng in pairs(ch_call.fromRanges) do
+        table.insert(locations, {
+          filename = vim.uri_to_fname(ch_item.uri),
+          text = ch_item.name,
+          lnum = rng.start.line + 1,
+          col = rng.start.character + 1,
+        })
+      end
     end
 
     pickers
@@ -153,15 +155,20 @@ local function list_or_jump(action, title, params, opts)
       local current_uri = params.textDocument.uri
       local target_uri = flattened_results[1].uri or flattened_results[1].targetUri
       if current_uri ~= target_uri then
+        local cmd
+        local file_path = vim.uri_to_fname(target_uri)
         if opts.jump_type == "tab" then
-          vim.cmd "tabedit"
+          cmd = "tabedit"
         elseif opts.jump_type == "split" then
-          vim.cmd "new"
+          cmd = "new"
         elseif opts.jump_type == "vsplit" then
-          vim.cmd "vnew"
+          cmd = "vnew"
         elseif opts.jump_type == "tab drop" then
-          local file_path = vim.uri_to_fname(target_uri)
-          vim.cmd("tab drop " .. file_path)
+          cmd = "tab drop"
+        end
+
+        if cmd then
+          vim.cmd(string.format("%s %s", cmd, file_path))
         end
       end
 

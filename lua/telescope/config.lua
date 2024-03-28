@@ -526,7 +526,7 @@ append(
   {
     num_pickers = 1,
     limit_entries = 1000,
-    ignore_empty_prompt = true,
+    ignore_empty_prompt = false,
   },
   [[
     This field handles the configuration for picker caching.
