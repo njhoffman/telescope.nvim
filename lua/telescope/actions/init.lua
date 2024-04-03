@@ -1494,6 +1494,35 @@ end
 
 actions.nop = function(_) end
 
+actions.mouse_click = function(prompt_bufnr)
+  local picker = action_state.get_current_picker(prompt_bufnr)
+
+  local pos = vim.fn.getmousepos()
+  if pos.winid == picker.results_win then
+    vim.schedule(function()
+      picker:set_selection(pos.line - 1)
+    end)
+  elseif pos.winid == picker.preview_win then
+    vim.schedule(function()
+      actions.select_default(prompt_bufnr)
+    end)
+  end
+  return ""
+end
+
+actions.double_mouse_click = function(prompt_bufnr)
+  local picker = action_state.get_current_picker(prompt_bufnr)
+
+  local pos = vim.fn.getmousepos()
+  if pos.winid == picker.results_win then
+    vim.schedule(function()
+      picker:set_selection(pos.line - 1)
+      actions.select_default(prompt_bufnr)
+    end)
+  end
+  return ""
+end
+
 -- ==================================================
 -- Transforms modules and sets the correct metatables.
 -- ==================================================
