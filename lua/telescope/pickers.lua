@@ -600,10 +600,10 @@ function Picker:find()
     end
     a.nvim_feedkeys(a.nvim_replace_termcodes(keys, true, false, true), "ni", true)
   else
-    utils.notify(
-      "pickers.find",
-      { msg = "`initial_mode` should be one of ['normal', 'insert'] but passed " .. self.initial_mode, level = "ERROR" }
-    )
+    utils.notify("pickers.find", {
+      msg = "`initial_mode` should be one of ['normal', 'insert'] but passed " .. self.initial_mode,
+      level = "ERROR",
+    })
   end
 
   local main_loop = async.void(function()
@@ -634,6 +634,8 @@ function Picker:find()
       local start_time = vim.loop.hrtime()
 
       local prompt = self:_get_next_filtered_prompt()
+      state.set_global_key("current_line", prompt)
+
       if self.__locations_input == true then
         local filename, line_number, column_number = utils.__separate_file_path_location(prompt)
 
@@ -1453,7 +1455,6 @@ function Picker:get_result_completor(results_bufnr, find_id, prompt, status_upda
 
     self:_do_selection(prompt)
 
-    state.set_global_key("current_line", self:_get_prompt())
     status_updater { completed = true }
 
     self:clear_extra_rows(results_bufnr)
