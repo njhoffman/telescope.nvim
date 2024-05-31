@@ -1607,6 +1607,8 @@ builtin.lsp_references({opts})            *telescope.builtin.lsp_references()*
                                           "vsplit", "never"
         {show_line}            (boolean)  show results text (default: true)
         {trim_text}            (boolean)  trim results text (default: false)
+        {reuse_win}            (boolean)  jump to existing window if buffer is
+                                          already opened (default: false)
         {file_encoding}        (string)   file encoding for the previewer
 
 
@@ -3387,6 +3389,30 @@ actions.delete_mark({prompt_bufnr})          *telescope.actions.delete_mark()*
 
 actions.insert_original_cword({prompt_bufnr}) *telescope.actions.insert_original_cword()*
     Insert the word under the cursor of the original (pre-Telescope) window
+
+
+    Parameters: ~
+        {prompt_bufnr} (number)  The prompt bufnr
+
+
+actions.insert_original_cWORD({prompt_bufnr}) *telescope.actions.insert_original_cWORD()*
+    Insert the WORD under the cursor of the original (pre-Telescope) window
+
+
+    Parameters: ~
+        {prompt_bufnr} (number)  The prompt bufnr
+
+
+actions.insert_original_cfile({prompt_bufnr}) *telescope.actions.insert_original_cfile()*
+    Insert the file under the cursor of the original (pre-Telescope) window
+
+
+    Parameters: ~
+        {prompt_bufnr} (number)  The prompt bufnr
+
+
+actions.insert_original_cline({prompt_bufnr}) *telescope.actions.insert_original_cline()*
+    Insert the line under the cursor of the original (pre-Telescope) window
 
 
     Parameters: ~
