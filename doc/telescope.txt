@@ -1434,6 +1434,8 @@ builtin.reloader({opts})                        *telescope.builtin.reloader()*
 builtin.buffers({opts})                          *telescope.builtin.buffers()*
     Lists open buffers in current neovim instance, opens selected buffer on
     `<cr>`
+    - Default keymaps:
+      - `<M-d>`: delete the currently selected buffer
 
 
     Parameters: ~
@@ -1478,10 +1480,12 @@ builtin.colorscheme({opts})                  *telescope.builtin.colorscheme()*
         {opts} (table)  options to pass to the picker
 
     Options: ~
-        {colors}         (table)    a list of additional colorschemes to
-                                    explicitly make available to telescope
-                                    (default: {})
-        {enable_preview} (boolean)  if true, will preview the selected color
+        {colors}          (table)    a list of additional colorschemes to
+                                     explicitly make available to telescope
+                                     (default: {})
+        {enable_preview}  (boolean)  if true, will preview the selected color
+        {ignore_builtins} (boolean)  if true, builtin colorschemes are not
+                                     listed
 
 
 builtin.marks({opts})                              *telescope.builtin.marks()*
@@ -2226,6 +2230,9 @@ layout_strategies.horizontal()                 *telescope.layout.horizontal()*
       - anchor:
         - Which edge/corner to pin the picker to
         - See |resolver.resolve_anchor_pos()|
+      - anchor_padding:
+        - Specifies an amount of additional padding around the anchor
+        - Values should be a positive integer
       - height:
         - How tall to make Telescope's entire layout
         - See |resolver.resolve_height()|
@@ -2279,6 +2286,9 @@ layout_strategies.center()                         *telescope.layout.center()*
       - anchor:
         - Which edge/corner to pin the picker to
         - See |resolver.resolve_anchor_pos()|
+      - anchor_padding:
+        - Specifies an amount of additional padding around the anchor
+        - Values should be a positive integer
       - height:
         - How tall to make Telescope's entire layout
         - See |resolver.resolve_height()|
@@ -2357,6 +2367,9 @@ layout_strategies.vertical()                     *telescope.layout.vertical()*
       - anchor:
         - Which edge/corner to pin the picker to
         - See |resolver.resolve_anchor_pos()|
+      - anchor_padding:
+        - Specifies an amount of additional padding around the anchor
+        - Values should be a positive integer
       - height:
         - How tall to make Telescope's entire layout
         - See |resolver.resolve_height()|
@@ -2387,6 +2400,9 @@ layout_strategies.flex()                             *telescope.layout.flex()*
       - anchor:
         - Which edge/corner to pin the picker to
         - See |resolver.resolve_anchor_pos()|
+      - anchor_padding:
+        - Specifies an amount of additional padding around the anchor
+        - Values should be a positive integer
       - height:
         - How tall to make Telescope's entire layout
         - See |resolver.resolve_height()|
