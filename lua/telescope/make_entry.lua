@@ -38,6 +38,7 @@ local entry_display = require "telescope.pickers.entry_display"
 local utils = require "telescope.utils"
 local strings = require "plenary.strings"
 local Path = require "plenary.path"
+local config = require "telescope.config"
 
 local treesitter_type_highlight = {
   ["associated"] = "TSConstant",
@@ -454,6 +455,7 @@ end
 function make_entry.gen_from_quickfix(opts)
   opts = opts or {}
   local show_line = vim.F.if_nil(opts.show_line, true)
+  local strip_prefix = vim.F.if_nil(opts.strip_path_prefix, config.values.strip_path_prefix)
 
   local hidden = utils.is_path_hidden(opts)
 
@@ -479,6 +481,10 @@ function make_entry.gen_from_quickfix(opts)
   local get_filename = get_filename_fn()
   return function(entry)
     local filename = vim.F.if_nil(entry.filename, get_filename(entry.bufnr))
+
+    if filename and strip_prefix and filename:match("^" .. vim.pesc(strip_prefix)) then
+      filename = filename:gsub("^" .. vim.pesc(strip_prefix), "")
+    end
 
     return make_entry.set_default_entry_mt({
       value = entry,
@@ -628,10 +634,10 @@ function make_entry.gen_from_buffer(opts)
     local bufname = filename and Path:new(filename):normalize(cwd) or "[No Name]"
 
     local hidden = entry.info.hidden == 1 and "h" or "a"
-    local readonly = vim.api.nvim_buf_get_option(entry.bufnr, "readonly") and "=" or " "
+    local readonly = vim.api.nvim_get_option_value("readonly", { buf = entry.bufnr }) and "=" or " "
     local changed = entry.info.changed == 1 and "+" or " "
     local indicator = entry.flag .. hidden .. readonly .. changed
-    local lnum = 1
+    local lnum = 0
 
     -- account for potentially stale lnum as getbufinfo might not be updated or from resuming buffers picker
     if entry.info.lnum ~= 0 then
@@ -1139,19 +1145,32 @@ end
 function make_entry.gen_from_diagnostics(opts)
   opts = opts or {}
 
+  local diagnostic_config = vim.diagnostic.config() or {}
+  local diagnostic_signs = {}
+  if type(diagnostic_config.signs) == "table" then
+    diagnostic_signs = diagnostic_config.signs.text or {}
+  end
+
   local type_diagnostic = vim.diagnostic.severity
   local signs = (function()
     if opts.no_sign then
       return
     end
     local signs = {}
-    for _, severity in ipairs(type_diagnostic) do
-      local status, sign = pcall(function()
-        -- only the first char is upper all others are lowercalse
-        return vim.trim(vim.fn.sign_getdefined("DiagnosticSign" .. severity:lower():gsub("^%l", string.upper))[1].text)
-      end)
-      if not status then
-        sign = severity:sub(1, 1)
+    for num, severity in ipairs(type_diagnostic) do
+      local sign = diagnostic_signs[num]
+      if not sign then
+        local status
+        status, sign = pcall(function()
+          -- only the first char is upper all others are lowercase
+          return vim.trim(
+            vim.fn.sign_getdefined("DiagnosticSign" .. severity:lower():gsub("^%l", string.upper))[1].text
+          )
+        end)
+
+        if not status then
+          sign = severity:sub(1, 1)
+        end
       end
       signs[severity] = sign
     end

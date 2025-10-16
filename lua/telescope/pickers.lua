@@ -220,6 +220,7 @@ local pickers = {}
 -- TODO: Add overscroll option for results buffer
 
 ---@class Picker
+---@field timers table
 --- Picker is the main UI that shows up to interact w/ your results.
 -- Takes a filter & a previewer
 local Picker = {}
@@ -321,6 +322,8 @@ function Picker:new(opts)
         type(opts.window) == "table" and opts.window.borderchars or config.values.borderchars
       ),
     },
+
+    timers = {},
 
     cache_picker = config.resolve_table_opts(opts.cache_picker, vim.deepcopy(config.values.cache_picker)),
     __scrolling_limit = tonumber(vim.F.if_nil(opts.temp__scrolling_limit, config.values.scrolling_limit)),
@@ -578,7 +581,8 @@ function Picker:find()
   vim.api.nvim_buf_set_lines(self.results_bufnr, 0, self.max_results, false, utils.repeated_table(self.max_results, ""))
 
   local status_updater = self:get_status_updater(self.prompt_win, self.prompt_bufnr)
-  local debounced_status = debounce.throttle_leading(status_updater, 50)
+  local debounced_status, timer = debounce.throttle_leading(status_updater, 50)
+  table.insert(self.timers, timer)
 
   local tx, rx = channel.mpsc()
   self._on_lines = tx.send
@@ -1595,12 +1599,12 @@ function pickers.on_close_prompt(prompt_bufnr)
       picker.default_text = curr_prompt
       picker.cache_picker.selection_row = picker._selection_row
       -- Only cache if prompt is not empty or ignore_empty_prompt is false
-        if not picker.cache_picker.ignore_empty_prompt or (curr_prompt and curr_prompt ~= "") then
+      if not picker.cache_picker.ignore_empty_prompt or (curr_prompt and curr_prompt ~= "") then
         picker.cache_picker.cached_prompt = picker:_get_prompt()
         picker.cache_picker.is_cached = true
         picker.cache_picker.timestamp = os.time()
-        picker.cache_picker.cwd =  vim.fn.getcwd()
-        picker.cache_picker.project = require('project_nvim').get_project_root()
+        picker.cache_picker.cwd = vim.fn.getcwd()
+        picker.cache_picker.project = require("project_nvim").get_project_root()
         table.insert(cached_pickers, 1, picker)
       end
 
@@ -1668,6 +1672,10 @@ end
 
 function Picker:_detach()
   self.finder:close()
+
+  for _, timer in ipairs(self.timers) do
+    timer:stop()
+  end
 
   -- TODO: Can we add a "cleanup" / "teardown" function that completely removes these.
   -- self.finder = nil
