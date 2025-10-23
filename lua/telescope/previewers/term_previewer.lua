@@ -286,7 +286,7 @@ previewers.vimgrep = defaulter(function(opts)
       if p == nil or p == "" then
         return
       end
-      if entry.bufnr and (p == "[No Name]" or vim.api.nvim_buf_get_option(entry.bufnr, "buftype") ~= "") then
+      if entry.bufnr and (p == "[No Name]" or vim.bo[entry.bufnr].buftype ~= "") then
         return
       end
 

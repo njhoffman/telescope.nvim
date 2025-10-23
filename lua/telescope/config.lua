@@ -950,6 +950,26 @@ append(
     Default: nil]]
 )
 
+append(
+  "enable_timing",
+  false,
+  [[
+    Enable detailed timing diagnostics for picker and finder performance.
+    When enabled, logs command execution, data loading rates, and UI
+    responsiveness metrics to telescope.log.
+
+    Timing information includes:
+    - Command and arguments being executed
+    - Time to first entry
+    - Total entries loaded and rate (entries/sec)
+    - Layout creation time
+    - UI initialization time
+    - Time until picker is ready for input
+    - Time to first result displayed
+
+    Default: false]]
+)
+
 -- @param user_defaults table: a table where keys are the names of options,
 --    and values are the ones the user wants
 -- @param tele_defaults table: (optional) a table containing all of the defaults

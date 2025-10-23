@@ -514,10 +514,10 @@ function Picker:_create_window(bufnr, popup_opts)
   local what = bufnr or ""
   local win, opts = popup.create(what, popup_opts)
 
-  a.nvim_win_set_option(win, "winblend", self.window.winblend)
+  vim.wo[win].winblend = self.window.winblend
   local border_win = opts and opts.border and opts.border.win_id
   if border_win then
-    a.nvim_win_set_option(border_win, "winblend", self.window.winblend)
+    vim.wo[border_win].winblend = self.window.winblend
   end
   return win, opts, border_win
 end
@@ -525,6 +525,14 @@ end
 --- Opens the given picker for the user to interact with
 ---@note: this is the main function for pickers, as it actually creates the interface for users
 function Picker:find()
+  -- Initialize timing diagnostics
+  local enable_timing = vim.F.if_nil(self.enable_timing, false)
+  local timing = {}
+  if enable_timing then
+    timing.picker_start = vim.loop.hrtime()
+    log.info("=== Picker Timing Diagnostics ===")
+  end
+
   self:close_existing_pickers()
   self:reset_selection()
 
@@ -543,8 +551,18 @@ function Picker:find()
   -- User autocmd run it before create Telescope window
   vim.api.nvim_exec_autocmds("User", { pattern = "TelescopeFindPre" })
 
+  if enable_timing then
+    timing.layout_start = vim.loop.hrtime()
+  end
+
   local layout = self:create_layout()
   layout:mount()
+
+  if enable_timing then
+    timing.layout_mounted = vim.loop.hrtime()
+    local layout_time = (timing.layout_mounted - timing.layout_start) / 1e6
+    log.debug(string.format("Layout creation and mount: %.2fms", layout_time))
+  end
 
   self.layout = layout
   self.prompt_win, self.prompt_bufnr, self.prompt_border =
@@ -558,13 +576,13 @@ function Picker:find()
     self.preview_win, self.preview_bufnr, self.preview_border = nil, nil, nil
   end
 
-  pcall(a.nvim_buf_set_option, self.results_bufnr, "tabstop", 1) -- #1834
-  pcall(a.nvim_buf_set_option, self.prompt_bufnr, "tabstop", 1) -- #1834
-  a.nvim_buf_set_option(self.prompt_bufnr, "buftype", "prompt")
-  a.nvim_win_set_option(self.results_win, "wrap", self.wrap_results)
-  a.nvim_win_set_option(self.prompt_win, "wrap", true)
+  pcall(function() vim.bo[self.results_bufnr].tabstop = 1 end) -- #1834
+  pcall(function() vim.bo[self.prompt_bufnr].tabstop = 1 end) -- #1834
+  vim.bo[self.prompt_bufnr].buftype = "prompt"
+  vim.wo[self.results_win].wrap = self.wrap_results
+  vim.wo[self.prompt_win].wrap = true
   if self.preview_win then
-    a.nvim_win_set_option(self.preview_win, "wrap", true)
+    vim.wo[self.preview_win].wrap = true
   end
 
   -- Prompt prefix
@@ -593,6 +611,12 @@ function Picker:find()
     self:set_prompt(self.default_text)
   end
 
+  if enable_timing then
+    timing.ui_setup_complete = vim.loop.hrtime()
+    local ui_time = (timing.ui_setup_complete - timing.layout_mounted) / 1e6
+    log.debug(string.format("UI initialization: %.2fms", ui_time))
+  end
+
   if vim.tbl_contains({ "insert", "normal" }, self.initial_mode) then
     local mode = vim.fn.mode()
     local keys
@@ -611,12 +635,18 @@ function Picker:find()
     })
   end
 
+  if enable_timing then
+    timing.ready_for_input = vim.loop.hrtime()
+    local ready_time = (timing.ready_for_input - timing.picker_start) / 1e6
+    log.info(string.format("Picker ready for input: %.2fms", ready_time))
+  end
+
   local main_loop = async.void(function()
     self.sorter:_init()
 
     -- Do filetype last, so that users can register at the last second.
-    pcall(a.nvim_buf_set_option, self.prompt_bufnr, "filetype", "TelescopePrompt")
-    pcall(a.nvim_buf_set_option, self.results_bufnr, "filetype", "TelescopeResults")
+    pcall(function() vim.bo[self.prompt_bufnr].filetype = "TelescopePrompt" end)
+    pcall(function() vim.bo[self.results_bufnr].filetype = "TelescopeResults" end)
 
     await_schedule()
 
@@ -1002,7 +1032,7 @@ function Picker:change_prompt_prefix(new_prefix, hl_group)
     vim.fn.prompt_setprompt(self.prompt_bufnr, new_prefix)
   else
     vim.api.nvim_buf_set_text(self.prompt_bufnr, 0, 0, 0, #self.prompt_prefix, {})
-    vim.api.nvim_buf_set_option(self.prompt_bufnr, "buftype", "")
+    vim.bo[self.prompt_bufnr].buftype = ""
   end
   self.prompt_prefix = new_prefix
   self:_reset_prefix_color(hl_group)
@@ -1405,11 +1435,21 @@ end
 ---@return function
 function Picker:get_result_processor(find_id, prompt, status_updater)
   local count = 0
+  local first_result_logged = false
+  local enable_timing = vim.F.if_nil(self.enable_timing, false)
+  local timing_start = enable_timing and vim.loop.hrtime() or nil
 
   local cb_add = function(score, entry)
     -- may need the prompt for tiebreak
     self.manager:add_entry(self, score, entry, prompt)
     status_updater { completed = false }
+
+    -- Log first result displayed
+    if enable_timing and not first_result_logged then
+      first_result_logged = true
+      local time_to_display = (vim.loop.hrtime() - timing_start) / 1e6
+      log.debug(string.format("Time to first result displayed: %.2fms", time_to_display))
+    end
   end
 
   local cb_filter = function(_)

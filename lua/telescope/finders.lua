@@ -166,6 +166,7 @@ finders._new = function(opts)
 end
 
 finders.new_async_job = function(opts)
+  -- Pass through enable_timing option
   if opts.writer then
     return finders._new(opts)
   end

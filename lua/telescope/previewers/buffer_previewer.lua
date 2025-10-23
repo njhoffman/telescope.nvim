@@ -329,7 +329,7 @@ local scroll_horizontal_fn = function(self, direction)
   local count = math.abs(direction)
 
   vim.api.nvim_win_call(self.state.winid, function()
-    vim.api.nvim_win_set_option(self.state.winid, "virtualedit", "all")
+    vim.wo[self.state.winid].virtualedit = "all"
     vim.cmd([[normal! ]] .. count .. input)
   end)
 end
@@ -429,19 +429,19 @@ previewers.new_buffer_previewer = function(opts)
     else
       local bufnr = vim.api.nvim_create_buf(false, true)
       set_bufnr(self, bufnr)
-      vim.api.nvim_buf_set_option(bufnr, "modifiable", true)
+      vim.bo[bufnr].modifiable = true
 
       vim.schedule(function()
-        if vim.api.nvim_buf_is_valid(bufnr) then 
+        if vim.api.nvim_buf_is_valid(bufnr) then
           utils.win_set_buf_noautocmd(preview_winid, bufnr)
         end
       end)
 
-      vim.api.nvim_win_set_option(preview_winid, "winhl", "Normal:TelescopePreviewNormal")
-      vim.api.nvim_win_set_option(preview_winid, "signcolumn", "no")
-      vim.api.nvim_win_set_option(preview_winid, "foldlevel", 100)
-      vim.api.nvim_win_set_option(preview_winid, "wrap", false)
-      vim.api.nvim_win_set_option(preview_winid, "scrollbind", false)
+      vim.wo[preview_winid].winhl = "Normal:TelescopePreviewNormal"
+      vim.wo[preview_winid].signcolumn = "no"
+      vim.wo[preview_winid].foldlevel = 100
+      vim.wo[preview_winid].wrap = false
+      vim.wo[preview_winid].scrollbind = false
 
       self.state.winid = preview_winid
       self.state.bufname = nil
@@ -570,7 +570,7 @@ previewers.vimgrep = defaulter(function(opts)
       -- builtin.buffers: bypass path validation for terminal buffers that don't have appropriate path
       local has_buftype = entry.bufnr
           and vim.api.nvim_buf_is_valid(entry.bufnr)
-          and vim.api.nvim_buf_get_option(entry.bufnr, "buftype") ~= ""
+          and vim.bo[entry.bufnr].buftype ~= ""
         or false
       local p
       if not has_buftype then
@@ -1057,7 +1057,7 @@ previewers.autocommands = defaulter(function(_)
           )
         end
 
-        vim.api.nvim_buf_set_option(self.state.bufnr, "filetype", "vim")
+        vim.bo[self.state.bufnr].filetype = "vim"
         vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, display)
         vim.api.nvim_buf_add_highlight(self.state.bufnr, 0, "TelescopeBorder", 1, 0, -1)
       else
