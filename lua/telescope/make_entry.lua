@@ -34,6 +34,8 @@
 --- TODO: Document something we call `entry_index`
 ---@brief ]]
 
+local api = vim.api
+
 local entry_display = require "telescope.pickers.entry_display"
 local utils = require "telescope.utils"
 local strings = require "plenary.strings"
@@ -72,7 +74,7 @@ local get_filename_fn = function()
       return c
     end
 
-    local n = vim.api.nvim_buf_get_name(bufnr)
+    local n = api.nvim_buf_get_name(bufnr)
     bufnr_name_cache[bufnr] = n
     return n
   end
@@ -150,7 +152,7 @@ do
   function make_entry.gen_from_file(opts)
     opts = opts or {}
 
-    local cwd = utils.path_expand(opts.cwd or vim.loop.cwd())
+    local cwd = utils.path_expand(opts.cwd or vim.uv.cwd())
 
     local disable_devicons = opts.disable_devicons
 
@@ -185,7 +187,7 @@ do
 
       if k == "path" then
         local retpath = Path:new({ t.cwd, t.value }):absolute()
-        if not vim.loop.fs_access(retpath, "R") then
+        if not vim.uv.fs_access(retpath, "R") then
           retpath = t.value
         end
         return retpath
@@ -313,7 +315,7 @@ do
     local display_string = "%s%s%s"
 
     mt_vimgrep_entry = {
-      cwd = utils.path_expand(opts.cwd or vim.loop.cwd()),
+      cwd = utils.path_expand(opts.cwd or vim.uv.cwd()),
 
       display = function(entry)
         local display_filename, path_style = utils.transform_path(opts, entry.filename)
@@ -505,7 +507,7 @@ end
 function make_entry.gen_from_lsp_symbols(opts)
   opts = opts or {}
 
-  local bufnr = opts.bufnr or vim.api.nvim_get_current_buf()
+  local bufnr = opts.bufnr or api.nvim_get_current_buf()
 
   -- Default we have two columns, symbol and type(unbound)
   -- If path is not hidden then its, filepath, symbol and type(still unbound)
@@ -536,7 +538,7 @@ function make_entry.gen_from_lsp_symbols(opts)
     local msg
 
     if opts.show_line then
-      msg = vim.trim(vim.F.if_nil(vim.api.nvim_buf_get_lines(bufnr, entry.lnum - 1, entry.lnum, false)[1], ""))
+      msg = vim.trim(vim.F.if_nil(api.nvim_buf_get_lines(bufnr, entry.lnum - 1, entry.lnum, false)[1], ""))
     end
 
     if hidden then
@@ -608,7 +610,7 @@ function make_entry.gen_from_buffer(opts)
     },
   }
 
-  local cwd = utils.path_expand(opts.cwd or vim.loop.cwd())
+  local cwd = utils.path_expand(opts.cwd or vim.uv.cwd())
 
   local make_display = function(entry)
     -- bufnr_width + modes + icon + 3 spaces + : + lnum
@@ -634,7 +636,7 @@ function make_entry.gen_from_buffer(opts)
     local bufname = filename and Path:new(filename):normalize(cwd) or "[No Name]"
 
     local hidden = entry.info.hidden == 1 and "h" or "a"
-    local readonly = vim.api.nvim_get_option_value("readonly", { buf = entry.bufnr }) and "=" or " "
+    local readonly = vim.bo[entry.bufnr].readonly and "=" or " "
     local changed = entry.info.changed == 1 and "+" or " "
     local indicator = entry.flag .. hidden .. readonly .. changed
     local lnum = 0
@@ -642,8 +644,8 @@ function make_entry.gen_from_buffer(opts)
     -- account for potentially stale lnum as getbufinfo might not be updated or from resuming buffers picker
     if entry.info.lnum ~= 0 then
       -- but make sure the buffer is loaded, otherwise line_count is 0
-      if vim.api.nvim_buf_is_loaded(entry.bufnr) then
-        local line_count = vim.api.nvim_buf_line_count(entry.bufnr)
+      if api.nvim_buf_is_loaded(entry.bufnr) then
+        local line_count = api.nvim_buf_line_count(entry.bufnr)
         lnum = math.max(math.min(entry.info.lnum, line_count), 1)
       else
         lnum = entry.info.lnum
@@ -666,7 +668,7 @@ end
 function make_entry.gen_from_treesitter(opts)
   opts = opts or {}
 
-  local bufnr = opts.bufnr or vim.api.nvim_get_current_buf()
+  local bufnr = opts.bufnr or api.nvim_get_current_buf()
 
   local display_items = {
     { width = opts.symbol_width or 25 },
@@ -686,7 +688,7 @@ function make_entry.gen_from_treesitter(opts)
   local type_highlight = opts.symbol_highlights or treesitter_type_highlight
 
   local make_display = function(entry)
-    local msg = vim.api.nvim_buf_get_lines(bufnr, entry.lnum, entry.lnum, false)[1] or ""
+    local msg = api.nvim_buf_get_lines(bufnr, entry.lnum, entry.lnum, false)[1] or ""
     msg = vim.trim(msg)
 
     local display_columns = {
@@ -1024,8 +1026,8 @@ function make_entry.gen_from_ctags(opts)
   opts = opts or {}
 
   local show_kind = vim.F.if_nil(opts.show_kind, true)
-  local cwd = utils.path_expand(opts.cwd or vim.loop.cwd())
-  local current_file = Path:new(vim.api.nvim_buf_get_name(opts.bufnr)):normalize(cwd)
+  local cwd = utils.path_expand(opts.cwd or vim.uv.cwd())
+  local current_file = Path:new(api.nvim_buf_get_name(opts.bufnr)):normalize(cwd)
 
   local display_items = {
     { width = 16 },
@@ -1085,7 +1087,7 @@ function make_entry.gen_from_ctags(opts)
 
     if k == "path" then
       local retpath = Path:new({ t.filename }):absolute()
-      if not vim.loop.fs_access(retpath, "R") then
+      if not vim.uv.fs_access(retpath, "R") then
         retpath = t.filename
       end
       return retpath

@@ -106,7 +106,7 @@ return function(opts)
             process_result(v)
           end
         end
-        for line in stdout:iter(false) do
+        for line in stdout:iter(false, { split_char = opts.split_char }) do
           num_results = num_results + 1
 
           -- Record first entry time
