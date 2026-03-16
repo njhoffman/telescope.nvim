@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 telescope.nvim is a highly extendable fuzzy finder plugin for Neovim built on latest neovim core features. It provides a modular architecture for searching, filtering, and picking items through a unified interface.
 
 **Core Requirements:**
-- Neovim v0.9.0+ compiled with LuaJIT (not Lua 5.1)
+- Neovim v0.10.0+ compiled with LuaJIT (not Lua 5.1)
 - plenary.nvim dependency (required)
 - ripgrep (for live_grep and grep_string)
 

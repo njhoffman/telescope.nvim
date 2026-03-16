@@ -527,7 +527,7 @@ function Picker:find()
   local timing = {}
   if enable_timing then
     timing.picker_start = vim.loop.hrtime()
-    log.info("=== Picker Timing Diagnostics ===")
+    log.info "=== Picker Timing Diagnostics ==="
   end
 
   self:close_existing_pickers()
@@ -1333,15 +1333,14 @@ function Picker:entry_adder(index, entry, _, insert)
     self:highlight_one_row(self.results_bufnr, self:_get_prompt(), display, row)
   end
 
-  if not set_ok then
-    log.debug("Failed to set lines...", msg)
-  end
-
   -- This pretty much only fails when people leave newlines in their results.
   --  So we'll clean it up for them if it fails.
   if not set_ok and display:find "\n" then
+    log.debug("Entry adder display cleanup:", msg, display)
     display = display:gsub("\n", " | ")
     api.nvim_buf_set_lines(self.results_bufnr, row, row + 1, false, { display })
+  elseif not set_ok then
+    log.debug("Failed to set lines...", msg, display)
   end
 end
 

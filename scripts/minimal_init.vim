@@ -1,5 +1,6 @@
 set rtp+=.
 set rtp+=../plenary.nvim/
+set rtp+=~/.local/share/nvim/lazy/plenary.nvim/
 set rtp+=../tree-sitter-lua/
 
 runtime! plugin/plenary.vim
