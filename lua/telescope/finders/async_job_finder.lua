@@ -72,7 +72,7 @@ return function(opts)
     -- Log command execution
     local cmd_string = format_command(job_opts.command, job_opts.args)
     if enable_timing then
-      log.info(string.format(" - Job Finder:  %s", cmd_string))
+      log.debug(string.format(" - Job Finder:  %s", cmd_string))
       if job_opts.cwd then
         log.debug(string.format("  CWD: %s", job_opts.cwd))
       end

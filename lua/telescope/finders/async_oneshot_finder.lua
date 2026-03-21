@@ -70,7 +70,7 @@ return function(opts)
         -- Log command execution
         if enable_timing then
           local cmd_string = format_command(job_opts.command, job_opts.args)
-          log.info(string.format(" - Job Oneshot: %s", cmd_string))
+          log.debug(string.format(" - Job Oneshot: %s", cmd_string))
           if cwd then
             log.debug(string.format("  CWD: %s", cwd))
           end
