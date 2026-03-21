@@ -100,7 +100,7 @@ Finder Performance:
 
 **Example:**
 ```
-=== Picker Timing Diagnostics ===
+=== Picker Timing Diagnostics [Find Files] ===
 Layout creation and mount: 15.23ms
 UI initialization: 8.67ms
 Picker ready for input: 25.12ms

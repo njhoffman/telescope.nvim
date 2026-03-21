@@ -1,8 +1,9 @@
-local async_job = require "telescope._"
+local async_job = require("telescope._")
 local LinesPipe = require("telescope._").LinesPipe
 
-local make_entry = require "telescope.make_entry"
-local log = require "telescope.log"
+local make_entry = require("telescope.make_entry")
+local config = require("telescope.config")
+local log = require("telescope.log")
 
 local function format_command(command, args)
   local cmd_str = command
@@ -16,17 +17,19 @@ local function log_timing_stats(stats)
   local duration_sec = stats.duration_ms / 1000
   local entries_per_sec = stats.entry_count / duration_sec
 
-  log.info(string.format(
-    "Finder Performance:\n" ..
-    "  Command: %s\n" ..
-    "  Total Time: %.3fs\n" ..
-    "  Entries: %d\n" ..
-    "  Rate: %.1f entries/sec",
-    stats.command,
-    duration_sec,
-    stats.entry_count,
-    entries_per_sec
-  ))
+  log.info(
+    string.format(
+      "Finder Performance:\n"
+        .. "  Command: %s\n"
+        .. "  Total Time: %.3fs\n"
+        .. "  Entries: %d\n"
+        .. "  Rate: %.1f entries/sec",
+      stats.command,
+      duration_sec,
+      stats.entry_count,
+      entries_per_sec
+    )
+  )
 end
 
 return function(opts)
@@ -34,7 +37,7 @@ return function(opts)
   local entry_maker = opts.entry_maker or make_entry.gen_from_string(opts)
 
   -- Enable timing diagnostics if requested
-  local enable_timing = vim.F.if_nil(opts.enable_timing, false)
+  local enable_timing = vim.F.if_nil(opts.enable_timing, config.values.enable_timing)
 
   local fn_command = function(prompt)
     local command_list = opts.command_generator(prompt)
@@ -69,7 +72,7 @@ return function(opts)
     -- Log command execution
     local cmd_string = format_command(job_opts.command, job_opts.args)
     if enable_timing then
-      log.info(string.format("Executing: %s", cmd_string))
+      log.info(string.format(" - Job Finder:  %s", cmd_string))
       if job_opts.cwd then
         log.debug(string.format("  CWD: %s", job_opts.cwd))
       end
@@ -85,13 +88,13 @@ return function(opts)
     -- if job_opts.writer and Job.is_job(job_opts.writer) then
     --   writer = job_opts.writer
     if opts.writer then
-      error "async_job_finder.writer is not yet implemented"
+      error("async_job_finder.writer is not yet implemented")
       writer = async_job.writer(opts.writer)
     end
 
     local stdout = LinesPipe()
 
-    job = async_job.spawn {
+    job = async_job.spawn({
       command = job_opts.command,
       args = job_opts.args,
       cwd = job_opts.cwd or opts.cwd,
@@ -99,7 +102,7 @@ return function(opts)
       writer = writer,
 
       stdout = stdout,
-    }
+    })
 
     local line_num = 0
     for line in stdout:iter(true) do
@@ -109,7 +112,7 @@ return function(opts)
       if enable_timing and line_num == 1 then
         timing_stats.first_entry_time = vim.loop.hrtime()
         local time_to_first = (timing_stats.first_entry_time - timing_stats.start_time) / 1e6
-        log.debug(string.format("Time to first entry: %.2fms", time_to_first))
+        log.debug(string.format(" - First entry: %5.2fms", time_to_first))
       end
 
       local entry = entry_maker(line)

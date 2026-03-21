@@ -1,9 +1,10 @@
-local async = require "plenary.async"
-local async_job = require "telescope._"
+local async = require("plenary.async")
+local async_job = require("telescope._")
 local LinesPipe = require("telescope._").LinesPipe
 
-local make_entry = require "telescope.make_entry"
-local log = require "telescope.log"
+local make_entry = require("telescope.make_entry")
+local config = require("telescope.config")
+local log = require("telescope.log")
 
 local await_count = 1000
 
@@ -19,17 +20,19 @@ local function log_timing_stats(stats)
   local duration_sec = stats.duration_ms / 1000
   local entries_per_sec = stats.entry_count / duration_sec
 
-  log.info(string.format(
-    "Oneshot Finder Performance:\n" ..
-    "  Command: %s\n" ..
-    "  Total Time: %.3fs\n" ..
-    "  Entries: %d\n" ..
-    "  Rate: %.1f entries/sec",
-    stats.command,
-    duration_sec,
-    stats.entry_count,
-    entries_per_sec
-  ))
+  log.info(
+    string.format(
+      "Oneshot Finder Performance:\n"
+        .. "  Command: %s\n"
+        .. "  Total Time: %.3fs\n"
+        .. "  Entries: %d\n"
+        .. "  Rate: %.1f entries/sec",
+      stats.command,
+      duration_sec,
+      stats.entry_count,
+      entries_per_sec
+    )
+  )
 end
 
 return function(opts)
@@ -39,7 +42,7 @@ return function(opts)
   local cwd = opts.cwd
   local env = opts.env
   local fn_command = assert(opts.fn_command, "Must pass `fn_command`")
-  local enable_timing = vim.F.if_nil(opts.enable_timing, false)
+  local enable_timing = vim.F.if_nil(opts.enable_timing, config.values.enable_timing)
 
   local results = vim.F.if_nil(opts.results, {})
   local num_results = #results
@@ -67,7 +70,7 @@ return function(opts)
         -- Log command execution
         if enable_timing then
           local cmd_string = format_command(job_opts.command, job_opts.args)
-          log.info(string.format("Executing oneshot: %s", cmd_string))
+          log.info(string.format(" - Job Oneshot: %s", cmd_string))
           if cwd then
             log.debug(string.format("  CWD: %s", cwd))
           end
@@ -88,14 +91,14 @@ return function(opts)
         -- end
 
         stdout = LinesPipe()
-        job = async_job.spawn {
+        job = async_job.spawn({
           command = job_opts.command,
           args = job_opts.args,
           cwd = cwd,
           env = env,
 
           stdout = stdout,
-        }
+        })
 
         job_started = true
       end
@@ -113,7 +116,7 @@ return function(opts)
           if enable_timing and num_results == 1 then
             timing_stats.first_entry_time = vim.loop.hrtime()
             local time_to_first = (timing_stats.first_entry_time - timing_stats.start_time) / 1e6
-            log.debug(string.format("Time to first entry: %.2fms", time_to_first))
+            log.debug(string.format(" - First entry: %5.2fms", time_to_first))
           end
 
           if num_results % await_count then

@@ -117,7 +117,7 @@ local diagnostics_to_tbl = function(opts)
     }
   end
 
-  -- NOTE: vim.diagnostic.get apperas to take severity directly 
+  -- NOTE: vim.diagnostic.get appears to take severity directly
   for _, d in ipairs(vim.diagnostic.get(opts.bufnr, diagnosis_opts.severity)) do
     if filter_diag(d) then
       table.insert(items, preprocess_diag(d))

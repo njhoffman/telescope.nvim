@@ -979,7 +979,10 @@ function config.set_defaults(user_defaults, tele_defaults)
 
   local function get(name, default_val)
     if name == "layout_config" then
-      return smarter_depth_2_extend(vim.F.if_nil(user_defaults[name], {}), vim.tbl_deep_extend("keep", vim.F.if_nil(config.values[name], {}), vim.F.if_nil(default_val, {})))
+      local user_val = vim.F.if_nil(user_defaults[name], {})
+      local config_val = vim.F.if_nil(config.values[name], {})
+      local def_val = vim.F.if_nil(default_val, {})
+      return smarter_depth_2_extend(user_val, vim.tbl_deep_extend("keep", config_val, def_val))
     end
     if name == "history" or name == "cache_picker" or name == "preview" then
       if user_defaults[name] == false or config.values[name] == false then
@@ -989,7 +992,10 @@ function config.set_defaults(user_defaults, tele_defaults)
         return vim.F.if_nil(config.values[name], {})
       end
 
-      return smarter_depth_2_extend(vim.F.if_nil(user_defaults[name], {}), vim.tbl_deep_extend("keep", vim.F.if_nil(config.values[name], {}), vim.F.if_nil(default_val, {})))
+      local user_val = vim.F.if_nil(user_defaults[name], {})
+      local config_val = vim.F.if_nil(config.values[name], {})
+      local def_val = vim.F.if_nil(default_val, {})
+      return smarter_depth_2_extend(user_val, vim.tbl_deep_extend("keep", config_val, def_val))
     end
     return first_non_null(user_defaults[name], config.values[name], default_val)
   end
