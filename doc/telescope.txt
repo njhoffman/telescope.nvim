@@ -1029,8 +1029,6 @@ builtin.current_buffer_fuzzy_find({opts}) *telescope.builtin.current_buffer_fuzz
     Options: ~
         {skip_empty_lines}     (boolean)  if true we don't display empty lines
                                           (default: false)
-        {results_ts_highlight} (boolean)  highlight result entries with
-                                          treesitter (default: true)
         {file_encoding}        (string)   file encoding for the previewer
 
 
@@ -2653,35 +2651,6 @@ look at the code in make_entry.lua.
 ================================================================================
 UTILS                                                          *telescope.utils*
 
-Utilities for writing telescope pickers
-
-utils.hl_range()                                  *telescope.utils.hl_range()*
-    TODO(clason): remove when dropping support for Nvim 0.10
-
-
-
-utils.str_byteindex()                        *telescope.utils.str_byteindex()*
-    TODO(clason): remove when dropping support for Nvim 0.10
-
-
-
-utils.validate({k}, {v}, {ty})                    *telescope.utils.validate()*
-    TODO(clason): remove when dropping support for Nvim 0.10
-
-
-    Parameters: ~
-        {k}  (string)
-        {v}  (any)
-        {ty} (type)
-
-
-utils.flatten()                                    *telescope.utils.flatten()*
-
-
-    Return: ~
-        table
-
-
 utils.path_expand({path})                      *telescope.utils.path_expand()*
     Hybrid of `vim.fn.expand()` and custom `vim.fs.normalize()`
 
@@ -2724,12 +2693,6 @@ utils.transform_path({opts}, {path})        *telescope.utils.transform_path()*
     Return: ~
         string: path to be displayed
         table: The transformed path ready to be displayed with the styling
-
-
-utils.has_ts_parser()                        *telescope.utils.has_ts_parser()*
-    TODO(clason): remove when dropping support for Nvim 0.10 Checks if
-    treesitter parser for language is installed
-
 
 
 utils.notify({funname}, {opts})                     *telescope.utils.notify()*
