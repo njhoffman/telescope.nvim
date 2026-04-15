@@ -136,7 +136,7 @@ local bcommits_picker = function(opts, title, finder)
 
       local get_buffer_of_orig = function(selection)
         local value = selection.value .. ":" .. transfrom_file()
-        local content = utils.get_os_command_output({ "git", "--no-pager", "show", value }, opts.cwd)
+        local content = utils.get_os_command_output(git_command({ "--no-pager", "show", value }, opts), opts.cwd)
 
         local bufnr = api.nvim_create_buf(false, true)
         api.nvim_buf_set_lines(bufnr, 0, -1, false, content)
@@ -440,6 +440,20 @@ git.status = function(opts)
     :find()
 end
 
+local try_gitsigns = function(opts)
+  local bufnr = opts.bufnr or vim.api.nvim_get_current_buf()
+  local ok, gs = pcall(vim.api.nvim_buf_get_var, bufnr, "gitsigns_status_dict")
+  if ok and gs and gs.gitdir then
+    opts.gitdir = gs.gitdir
+    opts.toplevel = gs.root
+    if gs.root then
+      opts.cwd = opts.use_git_root and gs.root or (opts.cwd or vim.uv.cwd())
+    end
+    return true
+  end
+  return false
+end
+
 local try_worktrees = function(opts)
   local worktrees = conf.git_worktrees
 
@@ -469,6 +483,14 @@ end
 
 local set_opts_cwd = function(opts)
   opts.use_git_root = vim.F.if_nil(opts.use_git_root, true)
+
+  -- Check if the current buffer's gitsigns-detected repo should override CWD-based detection.
+  -- This handles detached worktrees (e.g. bare repo dotfiles) where the buffer is tracked by a
+  -- different repo than the one at CWD.
+  if try_gitsigns(opts) then
+    return
+  end
+
   if opts.cwd then
     opts.cwd = utils.path_expand(opts.cwd)
   elseif opts.use_file_path then

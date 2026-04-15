@@ -366,6 +366,8 @@ function Picker:new(opts)
     get_selection_window = vim.F.if_nil(opts.get_selection_window, config.values.get_selection_window),
 
     cwd = opts.cwd,
+    gitdir = opts.gitdir,
+    toplevel = opts.toplevel,
 
     _find_id = 0,
     _completion_callbacks = type(opts._completion_callbacks) == "table" and opts._completion_callbacks or {},

@@ -62,6 +62,12 @@ local p_scroller = require "telescope.pickers.scroller"
 
 local action_state = require "telescope.actions.state"
 local action_utils = require "telescope.actions.utils"
+
+local git_command = utils.__git_command
+local function picker_git_opts(prompt_bufnr)
+  local picker = action_state.get_current_picker(prompt_bufnr)
+  return { cwd = picker.cwd, gitdir = picker.gitdir, toplevel = picker.toplevel }
+end
 local action_set = require "telescope.actions.set"
 local entry_display = require "telescope.pickers.entry_display"
 local from_entry = require "telescope.from_entry"
@@ -591,7 +597,7 @@ end
 --- Create and checkout a new git branch if it doesn't already exist
 ---@param prompt_bufnr number: The prompt bufnr
 actions.git_create_branch = function(prompt_bufnr)
-  local cwd = action_state.get_current_picker(prompt_bufnr).cwd
+  local gopts = picker_git_opts(prompt_bufnr)
   local new_branch = action_state.get_current_line()
 
   if new_branch == "" then
@@ -611,7 +617,7 @@ actions.git_create_branch = function(prompt_bufnr)
 
     actions.close(prompt_bufnr)
 
-    local _, ret, stderr = utils.get_os_command_output({ "git", "checkout", "-b", new_branch }, cwd)
+    local _, ret, stderr = utils.get_os_command_output(git_command({ "checkout", "-b", new_branch }, gopts), gopts.cwd)
     if ret == 0 then
       utils.notify("actions.git_create_branch", {
         msg = string.format("Switched to a new branch: %s", new_branch),
@@ -638,8 +644,10 @@ actions.git_apply_stash = function(prompt_bufnr)
     utils.__warn_no_selection "actions.git_apply_stash"
     return
   end
+  local gopts = picker_git_opts(prompt_bufnr)
   actions.close(prompt_bufnr)
-  local _, ret, stderr = utils.get_os_command_output { "git", "stash", "apply", "--index", selection.value }
+  local cmd = git_command({ "stash", "apply", "--index", selection.value }, gopts)
+  local _, ret, stderr = utils.get_os_command_output(cmd, gopts.cwd)
   if ret == 0 then
     utils.notify("actions.git_apply_stash", {
       msg = string.format("applied: '%s' ", selection.value),
@@ -656,14 +664,14 @@ end
 --- Checkout an existing git branch
 ---@param prompt_bufnr number: The prompt bufnr
 actions.git_checkout = function(prompt_bufnr)
-  local cwd = action_state.get_current_picker(prompt_bufnr).cwd
+  local gopts = picker_git_opts(prompt_bufnr)
   local selection = action_state.get_selected_entry()
   if selection == nil then
     utils.__warn_no_selection "actions.git_checkout"
     return
   end
   actions.close(prompt_bufnr)
-  local _, ret, stderr = utils.get_os_command_output({ "git", "checkout", selection.value }, cwd)
+  local _, ret, stderr = utils.get_os_command_output(git_command({ "checkout", selection.value }, gopts), gopts.cwd)
   if ret == 0 then
     utils.notify("actions.git_checkout", {
       msg = string.format("Checked out: %s", selection.value),
@@ -687,7 +695,7 @@ end
 --- If the branch is only in remote, create new branch tracking remote and switch to new one.
 ---@param prompt_bufnr number: The prompt bufnr
 actions.git_switch_branch = function(prompt_bufnr)
-  local cwd = action_state.get_current_picker(prompt_bufnr).cwd
+  local gopts = picker_git_opts(prompt_bufnr)
   local selection = action_state.get_selected_entry()
   if selection == nil then
     utils.__warn_no_selection "actions.git_switch_branch"
@@ -699,7 +707,7 @@ actions.git_switch_branch = function(prompt_bufnr)
   if string.match(selection.refname, pattern) then
     branch = string.gsub(selection.refname, pattern, "")
   end
-  local _, ret, stderr = utils.get_os_command_output({ "git", "switch", branch }, cwd)
+  local _, ret, stderr = utils.get_os_command_output(git_command({ "switch", branch }, gopts), gopts.cwd)
   if ret == 0 then
     utils.notify("actions.git_switch_branch", {
       msg = string.format("Switched to: '%s'", branch),
@@ -720,7 +728,7 @@ end
 --- Action to rename selected git branch
 --- @param prompt_bufnr number: The prompt bufnr
 actions.git_rename_branch = function(prompt_bufnr)
-  local cwd = action_state.get_current_picker(prompt_bufnr).cwd
+  local gopts = picker_git_opts(prompt_bufnr)
   local selection = action_state.get_selected_entry()
   if selection == nil then
     utils.__warn_no_selection "actions.git_rename_branch"
@@ -735,7 +743,8 @@ actions.git_rename_branch = function(prompt_bufnr)
     })
   else
     actions.close(prompt_bufnr)
-    local _, ret, stderr = utils.get_os_command_output({ "git", "branch", "-m", selection.value, new_branch }, cwd)
+    local cmd = git_command({ "branch", "-m", selection.value, new_branch }, gopts)
+    local _, ret, stderr = utils.get_os_command_output(cmd, gopts.cwd)
     if ret == 0 then
       utils.notify("actions.git_rename_branch", {
         msg = string.format("Renamed branch: '%s'", selection.value),
@@ -756,7 +765,7 @@ end
 
 local function make_git_branch_action(opts)
   return function(prompt_bufnr)
-    local cwd = action_state.get_current_picker(prompt_bufnr).cwd
+    local gopts = picker_git_opts(prompt_bufnr)
     local selection = action_state.get_selected_entry()
     if selection == nil then
       utils.__warn_no_selection(opts.action_name)
@@ -776,7 +785,12 @@ local function make_git_branch_action(opts)
     end
 
     actions.close(prompt_bufnr)
-    local _, ret, stderr = utils.get_os_command_output(opts.command(selection.value), cwd)
+    local cmd = opts.command(selection.value)
+    -- Strip leading "git" from command since git_command() prepends it with --git-dir/--work-tree
+    if cmd[1] == "git" then
+      table.remove(cmd, 1)
+    end
+    local _, ret, stderr = utils.get_os_command_output(git_command(cmd, gopts), gopts.cwd)
     if ret == 0 then
       utils.notify(opts.action_name, {
         msg = string.format(opts.success_message, selection.value),
@@ -816,11 +830,12 @@ actions.git_delete_branch = function(prompt_bufnr)
   end
 
   local picker = action_state.get_current_picker(prompt_bufnr)
+  local gopts = { cwd = picker.cwd, gitdir = picker.gitdir, toplevel = picker.toplevel }
   local action_name = "actions.git_delete_branch"
   picker:delete_selection(function(selection)
     local branch = selection.value
     print("Deleting branch " .. branch)
-    local _, ret, stderr = utils.get_os_command_output({ "git", "branch", "-D", branch }, picker.cwd)
+    local _, ret, stderr = utils.get_os_command_output(git_command({ "branch", "-D", branch }, gopts), gopts.cwd)
     if ret == 0 then
       utils.notify(action_name, {
         msg = string.format("Deleted branch: %s", branch),
@@ -863,7 +878,7 @@ actions.git_rebase_branch = make_git_branch_action {
 }
 
 local git_reset_branch = function(prompt_bufnr, mode)
-  local cwd = action_state.get_current_picker(prompt_bufnr).cwd
+  local gopts = picker_git_opts(prompt_bufnr)
   local selection = action_state.get_selected_entry()
   if selection == nil then
     utils.__warn_no_selection "actions.git_reset_branch"
@@ -881,7 +896,7 @@ local git_reset_branch = function(prompt_bufnr, mode)
   end
 
   actions.close(prompt_bufnr)
-  local _, ret, stderr = utils.get_os_command_output({ "git", "reset", mode, selection.value }, cwd)
+  local _, ret, stderr = utils.get_os_command_output(git_command({ "reset", mode, selection.value }, gopts), gopts.cwd)
   if ret == 0 then
     utils.notify("actions.git_rebase_branch", {
       msg = string.format("Reset to: '%s'", selection.value),
@@ -916,7 +931,7 @@ end
 --- Checkout a specific file for a given sha
 ---@param prompt_bufnr number: The prompt bufnr
 actions.git_checkout_current_buffer = function(prompt_bufnr)
-  local cwd = action_state.get_current_picker(prompt_bufnr).cwd
+  local gopts = picker_git_opts(prompt_bufnr)
   local selection = action_state.get_selected_entry()
   if selection == nil then
     utils.__warn_no_selection "actions.git_checkout_current_buffer"
@@ -924,23 +939,24 @@ actions.git_checkout_current_buffer = function(prompt_bufnr)
     return
   end
   actions.close(prompt_bufnr)
-  utils.get_os_command_output({ "git", "checkout", selection.value, "--", selection.current_file }, cwd)
+  local cmd = git_command({ "checkout", selection.value, "--", selection.current_file }, gopts)
+  utils.get_os_command_output(cmd, gopts.cwd)
   vim.cmd "checktime"
 end
 
 --- Stage/unstage selected file
 ---@param prompt_bufnr number: The prompt bufnr
 actions.git_staging_toggle = function(prompt_bufnr)
-  local cwd = action_state.get_current_picker(prompt_bufnr).cwd
+  local gopts = picker_git_opts(prompt_bufnr)
   local selection = action_state.get_selected_entry()
   if selection == nil then
     utils.__warn_no_selection "actions.git_staging_toggle"
     return
   end
   if selection.status:sub(2) == " " then
-    utils.get_os_command_output({ "git", "restore", "--staged", selection.value }, cwd)
+    utils.get_os_command_output(git_command({ "restore", "--staged", selection.value }, gopts), gopts.cwd)
   else
-    utils.get_os_command_output({ "git", "add", selection.value }, cwd)
+    utils.get_os_command_output(git_command({ "add", selection.value }, gopts), gopts.cwd)
   end
 end
 
