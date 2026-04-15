@@ -605,6 +605,7 @@ append(
     treesitter = true,
     msg_bg_fillchar = "╱",
     hide_on_startup = false,
+    debounce = 0,
   },
   [[
     This field handles the global configuration for previewers.
@@ -700,6 +701,14 @@ append(
                           command when previewing directories. Otherwise will result
                           to using `--long`.
                           Default: false
+      - debounce:         Debounce preview refresh while scrolling the results
+                          list, in milliseconds. When greater than zero, the
+                          previewer is only invoked after selection movement
+                          has been idle for `debounce` ms, so holding j/k
+                          through a long list does not generate a preview per
+                          entry. The first preview of a new picker is always
+                          rendered immediately. Set to 0 to disable.
+                          Default: 0
     ]]
 )
 

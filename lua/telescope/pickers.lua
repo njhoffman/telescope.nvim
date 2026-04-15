@@ -344,6 +344,11 @@ function Picker:new(opts)
     initial_mode = vim.F.if_nil(opts.initial_mode, config.values.initial_mode),
     _original_mode = api.nvim_get_mode().mode,
     debounce = vim.F.if_nil(tonumber(opts.debounce), nil),
+    preview_debounce = tonumber(
+      (type(opts.preview) == "table" and opts.preview.debounce)
+        or (type(config.values.preview) == "table" and config.values.preview.debounce)
+        or 0
+    ),
 
     _finder_attached = true,
     default_text = opts.default_text,
@@ -438,6 +443,16 @@ function Picker:new(opts)
   obj.scroller = p_scroller.create(obj.scroll_strategy, obj.sorting_strategy)
 
   obj.highlighter = p_highlighter.new(obj)
+
+  if obj.preview_debounce and obj.preview_debounce > 0 then
+    local wrapped, timer = debounce.debounce_trailing(function()
+      if not obj.closed then
+        obj:refresh_previewer()
+      end
+    end, obj.preview_debounce)
+    obj._preview_refresh_debounced = wrapped
+    table.insert(obj.timers, timer)
+  end
 
   if opts.on_complete then
     for _, on_complete_item in ipairs(opts.on_complete) do
@@ -1206,7 +1221,7 @@ function Picker:set_selection(row)
   if not entry then
     -- also refresh previewer when there is no entry selected, so the preview window is cleared
     self._selection_entry = entry
-    self:refresh_previewer()
+    self:_schedule_preview_refresh()
     return
   end
 
@@ -1258,7 +1273,7 @@ function Picker:set_selection(row)
     return
   end
 
-  self:refresh_previewer()
+  self:_schedule_preview_refresh()
   if old_entry == entry and self._selection_row == row then
     return
   end
@@ -1304,6 +1319,19 @@ function Picker:update_prefix(entry, row)
   -- Only change the first couple characters, nvim_buf_set_text leaves the existing highlights
   api.nvim_buf_set_text(self.results_bufnr, row, 0, row, #old_caret, { pre })
   return pre
+end
+
+--- Schedule a preview refresh, respecting `preview.debounce`.
+--- The first refresh of the picker's lifetime is always immediate so the
+--- preview is populated on open; subsequent refreshes during rapid scrolling
+--- are coalesced to a single trailing call.
+function Picker:_schedule_preview_refresh()
+  if self._preview_refresh_debounced and self._preview_rendered then
+    self._preview_refresh_debounced()
+  else
+    self._preview_rendered = true
+    self:refresh_previewer()
+  end
 end
 
 --- Refresh the previewer based on the current `status` of the picker
