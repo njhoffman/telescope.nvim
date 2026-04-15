@@ -1113,6 +1113,12 @@ previewers.highlights = defaulter(function(_)
       end
 
       vim.schedule(function()
+        if not (self.state and self.state.winid and api.nvim_win_is_valid(self.state.winid)) then
+          return
+        end
+        if not (self.state.bufnr and api.nvim_buf_is_valid(self.state.bufnr)) then
+          return
+        end
         api.nvim_buf_call(self.state.bufnr, function()
           vim.cmd "keepjumps norm! gg"
           vim.fn.search("^" .. entry.value .. " ")
