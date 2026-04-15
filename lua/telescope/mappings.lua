@@ -234,12 +234,19 @@ mappings.default_mappings = config.values.default_mappings
 
 -- normal names are prefixed with telescope|
 -- encoded objects are prefixed with telescopej|
+-- When an origin is supplied (one of "default", "user_global", "picker"), it
+-- is encoded as a suffix on the prefix, e.g. `telescope:picker|name`. The
+-- which-key action uses this tag to group and highlight mappings by source.
 ---@param key_func table|fun()
 ---@param opts table
+---@param origin string|nil: "default" | "user_global" | "picker"
 ---@return string?
-local get_desc_for_keyfunc = function(key_func, opts)
+local get_desc_for_keyfunc = function(key_func, opts, origin)
+  local name_prefix = origin and ("telescope:" .. origin .. "|") or "telescope|"
+  local json_prefix = origin and ("telescopej:" .. origin .. "|") or "telescopej|"
+
   if opts and opts.desc then
-    return "telescope|" .. opts.desc
+    return name_prefix .. opts.desc
   end
 
   if type(key_func) == "table" then
@@ -249,14 +256,14 @@ local get_desc_for_keyfunc = function(key_func, opts)
         name = name == "" and action or name .. " + " .. action
       end
     end
-    return "telescope|" .. name
+    return name_prefix .. name
   elseif type(key_func) == "function" then
     local info = debug.getinfo(key_func)
-    return "telescopej|" .. vim.json.encode { source = info.source, linedefined = info.linedefined }
+    return json_prefix .. vim.json.encode { source = info.source, linedefined = info.linedefined }
   end
 end
 
-local telescope_map = function(prompt_bufnr, mode, key_bind, key_func, opts)
+local telescope_map = function(prompt_bufnr, mode, key_bind, key_func, opts, origin)
   if not key_func then
     return
   end
@@ -293,7 +300,7 @@ local telescope_map = function(prompt_bufnr, mode, key_bind, key_func, opts)
     local ret = key_func(prompt_bufnr)
     api.nvim_exec_autocmds("User", { pattern = "TelescopeKeymap" })
     return ret
-  end, vim.tbl_extend("force", opts, { buffer = prompt_bufnr, desc = get_desc_for_keyfunc(key_func, opts) }))
+  end, vim.tbl_extend("force", opts, { buffer = prompt_bufnr, desc = get_desc_for_keyfunc(key_func, opts, origin) }))
 end
 
 local extract_keymap_opts = function(key_func)
@@ -319,7 +326,7 @@ mappings.apply_keymap = function(prompt_bufnr, attach_mappings, buffer_keymap)
       local key_bind_internal = api.nvim_replace_termcodes(key_bind, true, true, true)
       applied_mappings[mode][key_bind_internal] = true
 
-      telescope_map(prompt_bufnr, mode, key_bind, key_func, opts)
+      telescope_map(prompt_bufnr, mode, key_bind, key_func, opts, "picker")
     end
   end
 
@@ -345,7 +352,7 @@ mappings.apply_keymap = function(prompt_bufnr, attach_mappings, buffer_keymap)
       local key_bind_internal = api.nvim_replace_termcodes(key_bind, true, true, true)
       if not applied_mappings[mode][key_bind_internal] then
         applied_mappings[mode][key_bind_internal] = true
-        telescope_map(prompt_bufnr, mode, key_bind, key_func, extract_keymap_opts(key_func))
+        telescope_map(prompt_bufnr, mode, key_bind, key_func, extract_keymap_opts(key_func), "user_global")
       end
     end
   end
@@ -358,7 +365,7 @@ mappings.apply_keymap = function(prompt_bufnr, attach_mappings, buffer_keymap)
       local key_bind_internal = api.nvim_replace_termcodes(key_bind, true, true, true)
       if not applied_mappings[mode][key_bind_internal] then
         applied_mappings[mode][key_bind_internal] = true
-        telescope_map(prompt_bufnr, mode, key_bind, key_func, extract_keymap_opts(key_func))
+        telescope_map(prompt_bufnr, mode, key_bind, key_func, extract_keymap_opts(key_func), "default")
       end
     end
   end

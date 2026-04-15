@@ -80,24 +80,54 @@ function utils.map_selections(prompt_bufnr, f)
   end
 end
 
---- Utility to collect mappings of prompt buffer in array of `{mode, keybind, name}`.
+--- Parse the telescope mapping description prefix.
+--- Recognizes four forms:
+---   "telescope|<name>"                 -> name, nil
+---   "telescopej|<json>"                -> json (encoded), nil
+---   "telescope:<origin>|<name>"        -> name, origin
+---   "telescopej:<origin>|<json>"       -> json (encoded), origin
+--- Returns (body, origin, is_json). When the desc is not a telescope mapping
+--- the first return is nil.
+---@param desc string|nil
+---@return string|nil body, string|nil origin, boolean is_json
+function utils._parse_telescope_desc(desc)
+  if not desc then
+    return nil, nil, false
+  end
+  local origin, body = desc:match("^telescope:([%w_]+)|(.*)$")
+  if body then
+    return body, origin, false
+  end
+  body = desc:match("^telescope|(.*)$")
+  if body then
+    return body, nil, false
+  end
+  origin, body = desc:match("^telescopej:([%w_]+)|(.*)$")
+  if body then
+    return body, origin, true
+  end
+  body = desc:match("^telescopej|(.*)$")
+  if body then
+    return body, nil, true
+  end
+  return nil, nil, false
+end
+
+--- Utility to collect mappings of prompt buffer in array of `{mode, keybind, desc, origin}`.
+--- `origin` is one of "default" | "user_global" | "picker" | nil (for legacy/unset).
 ---@param prompt_bufnr number: The prompt bufnr
 function utils.get_registered_mappings(prompt_bufnr)
   local ret = {}
   for _, mode in ipairs { "n", "i" } do
     for _, mapping in ipairs(vim.api.nvim_buf_get_keymap(prompt_bufnr, mode)) do
-      -- ensure only telescope mappings
-      if mapping.desc then
-        if mapping.desc:sub(1, 10) == "telescope|" then
-          table.insert(ret, { mode = mode, keybind = mapping.lhs, desc = mapping.desc:sub(11) })
-        elseif mapping.desc:sub(1, 11) == "telescopej|" then
-          local fname = utils._get_anon_function_name(vim.json.decode(mapping.desc:sub(12)))
+      local body, origin, is_json = utils._parse_telescope_desc(mapping.desc)
+      if body then
+        if is_json then
+          local fname = utils._get_anon_function_name(vim.json.decode(body))
           fname = fname:lower() == mapping.lhs:lower() and "<anonymous>" or fname
-          table.insert(ret, {
-            mode = mode,
-            keybind = mapping.lhs,
-            desc = fname,
-          })
+          table.insert(ret, { mode = mode, keybind = mapping.lhs, desc = fname, origin = origin })
+        else
+          table.insert(ret, { mode = mode, keybind = mapping.lhs, desc = body, origin = origin })
         end
       end
     end
