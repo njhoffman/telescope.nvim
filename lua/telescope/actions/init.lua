@@ -57,7 +57,6 @@ local api = vim.api
 local conf = require("telescope.config").values
 local state = require "telescope.state"
 local utils = require "telescope.utils"
-local popup = require "plenary.popup"
 local p_scroller = require "telescope.pickers.scroller"
 
 local action_state = require "telescope.actions.state"
@@ -69,11 +68,9 @@ local function picker_git_opts(prompt_bufnr)
   return { cwd = picker.cwd, gitdir = picker.gitdir, toplevel = picker.toplevel }
 end
 local action_set = require "telescope.actions.set"
-local entry_display = require "telescope.pickers.entry_display"
 local from_entry = require "telescope.from_entry"
 
 local transform_mod = require("telescope.actions.mt").transform_mod
-local resolver = require "telescope.config.resolve"
 
 local actions = setmetatable({}, {
   __index = function(_, k)
@@ -1321,226 +1318,16 @@ end
 --- Display the keymaps of registered actions similar to which-key.nvim.<br>
 --- - Notes:
 ---   - The defaults can be overridden via |action_generate.which_key|.
+---   - Mappings are categorized by origin (`default` | `user_global` |
+---     `picker`) with distinct highlights. On overflow, lower-priority
+---     categories are dropped first (configurable via `category_drop_order`).
+---   - Key codes can be substituted for display via `key_labels` (exact
+---     match) and `replace_keys` (Lua-pattern pairs).
+---   - The popup re-aligns on `VimResized` by default; set `resize = false`
+---     to disable.
 ---@param prompt_bufnr number: The prompt bufnr
 actions.which_key = function(prompt_bufnr, opts)
-  opts = opts or {}
-  opts.max_height = vim.F.if_nil(opts.max_height, 0.4)
-  opts.only_show_current_mode = vim.F.if_nil(opts.only_show_current_mode, true)
-  opts.mode_width = vim.F.if_nil(opts.mode_width, 1)
-  opts.keybind_width = vim.F.if_nil(opts.keybind_width, 7)
-  opts.name_width = vim.F.if_nil(opts.name_width, 30)
-  opts.line_padding = vim.F.if_nil(opts.line_padding, 1)
-  opts.separator = vim.F.if_nil(opts.separator, " -> ")
-  opts.close_with_action = vim.F.if_nil(opts.close_with_action, true)
-  opts.normal_hl = vim.F.if_nil(opts.normal_hl, "TelescopePrompt")
-  opts.border_hl = vim.F.if_nil(opts.border_hl, "TelescopePromptBorder")
-  opts.winblend = vim.F.if_nil(opts.winblend, conf.winblend)
-  if type(opts.winblend) == "function" then
-    opts.winblend = opts.winblend()
-  end
-  opts.zindex = vim.F.if_nil(opts.zindex, 100)
-  opts.column_padding = vim.F.if_nil(opts.column_padding, "  ")
-
-  -- Assigning into 'opts.column_indent' would override a number with a string and
-  -- cause issues with subsequent calls, keep a local copy of the string instead
-  local column_indent = table.concat(utils.repeated_table(vim.F.if_nil(opts.column_indent, 4), " "))
-
-  -- close on repeated keypress
-  local km_bufs = (function()
-    local ret = {}
-    local bufs = api.nvim_list_bufs()
-    for _, buf in ipairs(bufs) do
-      for _, bufname in ipairs { "_TelescopeWhichKey", "_TelescopeWhichKeyBorder" } do
-        if string.find(api.nvim_buf_get_name(buf), bufname) then
-          table.insert(ret, buf)
-        end
-      end
-    end
-    return ret
-  end)()
-  if not vim.tbl_isempty(km_bufs) then
-    for _, buf in ipairs(km_bufs) do
-      utils.buf_delete(buf)
-      local win_ids = vim.fn.win_findbuf(buf)
-      for _, win_id in ipairs(win_ids) do
-        pcall(api.nvim_win_close, win_id, true)
-      end
-    end
-    return
-  end
-
-  local displayer = entry_display.create {
-    separator = opts.separator,
-    items = {
-      { width = opts.mode_width },
-      { width = opts.keybind_width },
-      { width = opts.name_width },
-    },
-  }
-
-  local make_display = function(mapping)
-    return displayer {
-      { mapping.mode, vim.F.if_nil(opts.mode_hl, "TelescopeResultsConstant") },
-      { mapping.keybind, vim.F.if_nil(opts.keybind_hl, "TelescopeResultsVariable") },
-      { mapping.name, vim.F.if_nil(opts.name_hl, "TelescopeResultsFunction") },
-    }
-  end
-
-  local mappings = {}
-  local mode = api.nvim_get_mode().mode
-  for _, v in pairs(action_utils.get_registered_mappings(prompt_bufnr)) do
-    if v.desc and v.desc ~= "which_key" and v.desc ~= "nop" then
-      if not opts.only_show_current_mode or mode == v.mode then
-        table.insert(mappings, { mode = v.mode, keybind = v.keybind, name = v.desc })
-        if v.desc == "<anonymous>" then
-          utils.notify("actions.which_key", {
-            msg = "No name available for anonymous functions.",
-            level = "INFO",
-            once = true,
-          })
-        end
-      end
-    end
-  end
-
-  table.sort(mappings, function(x, y)
-    if x.name < y.name then
-      return true
-    elseif x.name == y.name then
-      -- show normal mode as the standard mode first
-      if x.mode > y.mode then
-        return true
-      else
-        return false
-      end
-    else
-      return false
-    end
-  end)
-
-  local entry_width = #opts.column_padding
-    + opts.mode_width
-    + opts.keybind_width
-    + opts.name_width
-    + (3 * #opts.separator)
-  local num_total_columns = math.floor((vim.o.columns - #column_indent) / entry_width)
-  opts.num_rows =
-    math.min(math.ceil(#mappings / num_total_columns), resolver.resolve_height(opts.max_height)(_, _, vim.o.lines))
-  local total_available_entries = opts.num_rows * num_total_columns
-  local winheight = opts.num_rows + 2 * opts.line_padding
-
-  -- place hints at top or bottom relative to prompt
-  local win_central_row = function(win_nr)
-    return api.nvim_win_get_position(win_nr)[1] + 0.5 * api.nvim_win_get_height(win_nr)
-  end
-  -- TODO(fdschmidt93|l-kershaw): better generalization of where to put which key float
-  local picker = action_state.get_current_picker(prompt_bufnr)
-  local prompt_row = win_central_row(picker.prompt_win)
-  local results_row = win_central_row(picker.results_win)
-  local preview_row = picker.preview_win and win_central_row(picker.preview_win) or results_row
-  local prompt_pos = prompt_row < 0.4 * vim.o.lines
-    or prompt_row < 0.6 * vim.o.lines and results_row + preview_row < vim.o.lines
-
-  local modes = { n = "Normal", i = "Insert" }
-  local title_mode = opts.only_show_current_mode and modes[mode] .. " Mode " or ""
-  local title_text = title_mode .. "Keymaps"
-  local popup_opts = {
-    relative = "editor",
-    enter = false,
-    minwidth = vim.o.columns,
-    maxwidth = vim.o.columns,
-    minheight = winheight,
-    maxheight = winheight,
-    line = prompt_pos == true and vim.o.lines - winheight + 1 or 1,
-    col = 0,
-    border = { prompt_pos and 1 or 0, 0, not prompt_pos and 1 or 0, 0 },
-    borderchars = { prompt_pos and "─" or " ", "", not prompt_pos and "─" or " ", "", "", "", "", "" },
-    noautocmd = true,
-    title = { { text = title_text, pos = prompt_pos and "N" or "S" } },
-    zindex = opts.zindex,
-  }
-  local km_win_id, km_opts = popup.create("", popup_opts)
-  local km_buf = api.nvim_win_get_buf(km_win_id)
-  api.nvim_buf_set_name(km_buf, "_TelescopeWhichKey")
-  api.nvim_buf_set_name(km_opts.border.bufnr, "_TelescopeTelescopeWhichKeyBorder")
-  vim.wo[km_win_id].winhl = "Normal:" .. opts.normal_hl
-  vim.wo[km_opts.border.win_id].winhl = "Normal:" .. opts.border_hl
-  vim.wo[km_win_id].winblend = opts.winblend
-  vim.wo[km_win_id].foldenable = false
-
-  api.nvim_create_autocmd("BufLeave", {
-    buffer = km_buf,
-    once = true,
-    callback = function()
-      pcall(api.nvim_win_close, km_win_id, true)
-      pcall(api.nvim_win_close, km_opts.border.win_id, true)
-      require("telescope.utils").buf_delete(km_buf)
-    end,
-  })
-
-  api.nvim_buf_set_lines(
-    km_buf,
-    0,
-    -1,
-    false,
-    utils.repeated_table(opts.num_rows + 2 * opts.line_padding, column_indent)
-  )
-
-  local keymap_highlights = api.nvim_create_namespace "telescope_whichkey"
-  local highlights = {}
-  for index, mapping in ipairs(mappings) do
-    local row = utils.cycle(index, opts.num_rows) - 1 + opts.line_padding
-    local prev_line = api.nvim_buf_get_lines(km_buf, row, row + 1, false)[1]
-    if index == total_available_entries and total_available_entries > #mappings then
-      local new_line = prev_line .. "..."
-      api.nvim_buf_set_lines(km_buf, row, row + 1, false, { new_line })
-      break
-    end
-    local display, display_hl = make_display(mapping)
-    local new_line = prev_line .. display .. opts.column_padding -- incl. padding
-    api.nvim_buf_set_lines(km_buf, row, row + 1, false, { new_line })
-    table.insert(highlights, { hl = display_hl, row = row, col = #prev_line })
-  end
-
-  -- highlighting only after line setting as a.nvim_buf_set_lines removes hl otherwise
-  for _, highlight_tbl in pairs(highlights) do
-    local highlight = highlight_tbl.hl
-    local row_ = highlight_tbl.row
-    local col = highlight_tbl.col
-    for _, hl_block in ipairs(highlight) do
-      utils.hl_range(
-        km_buf,
-        keymap_highlights,
-        hl_block[2],
-        { row_, col + hl_block[1][1] },
-        { row_, col + hl_block[1][2] }
-      )
-    end
-  end
-
-  -- if close_with_action is true, close the which_key window when any action is triggered
-  -- otherwise close the window when the prompt buffer is closed
-  local close_event, close_pattern, close_buffer
-  if opts.close_with_action then
-    close_event, close_pattern, close_buffer = "User", "TelescopeKeymap", nil
-  else
-    close_event, close_pattern, close_buffer = "BufWinLeave", nil, prompt_bufnr
-  end
-  -- only set up autocommand after showing preview completed
-  vim.schedule(function()
-    api.nvim_create_autocmd(close_event, {
-      pattern = close_pattern,
-      buffer = close_buffer,
-      once = true,
-      callback = function()
-        vim.schedule(function()
-          pcall(api.nvim_win_close, km_win_id, true)
-          pcall(api.nvim_win_close, km_opts.border.win_id, true)
-          utils.buf_delete(km_buf)
-        end)
-      end,
-    })
-  end)
+  require("telescope.actions._which_key").run(prompt_bufnr, opts)
 end
 
 --- Move from a none fuzzy search to a fuzzy one<br>

@@ -53,6 +53,15 @@ local action_generate = {}
 ---@field border_hl string: winhl of "Normal" for keymap borders (default: "TelescopePromptBorder")
 ---@field winblend number: pseudo-transparency of keymap hints floating window
 ---@field zindex number: z-index of keymap hints floating window (default: 100)
+---@field categorize_mappings boolean: group and highlight mappings by origin — "default" (built-in telescope), "user_global" (your setup.defaults.mappings), and "picker" (per-picker attach_mappings or extension) (default: true)
+---@field category_drop_order string[]: order in which categories are dropped on overflow; "picker" is always kept last (default: { "default", "user_global" })
+---@field default_hl table: { mode, keybind, name } hl override for `default`-origin mappings (default: links to TelescopeWhichKeyDefault{Mode,Bind,Name})
+---@field user_hl table: { mode, keybind, name } hl override for `user_global`-origin mappings (default: links to TelescopeWhichKeyUser{Mode,Bind,Name})
+---@field picker_hl table: { mode, keybind, name } hl override for `picker`-origin mappings (default: links to TelescopeWhichKeyPicker{Mode,Bind,Name})
+---@field key_labels table<string,string>: exact-match substitutions applied before display, e.g. { ["<CR>"] = "Enter" }
+---@field replace_keys table: list of { pattern, replacement } Lua-pattern pairs applied after key_labels; use for generic rewrites like { { "^<Plug>", "" } }
+---@field use_default_key_labels boolean: merge a small built-in `key_labels` table for common keys (default: false)
+---@field resize boolean: reopen the popup on VimResized so it reflows for the new editor size (default: true)
 action_generate.which_key = function(opts)
   local which_key = function(prompt_bufnr)
     actions.which_key(prompt_bufnr, opts)
