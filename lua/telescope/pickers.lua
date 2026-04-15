@@ -199,10 +199,11 @@ local function default_create_layout(picker)
         popup.move(prompt_win, popup_opts.prompt)
         popup.move(results_win, popup_opts.results)
 
+        local preview_border_win = self.preview.border.winid
         -- Remove preview after the prompt and results are moved
         vim.defer_fn(function()
           utils.win_delete("preview_win", preview_win, true)
-          utils.win_delete("preview_win", self.preview.border.winid, true)
+          utils.win_delete("preview_win", preview_border_win, true)
           self.preview = nil
         end, 0)
       else
@@ -754,7 +755,7 @@ function Picker:find()
       self:_reset_track()
 
       if not api.nvim_buf_is_valid(self.prompt_bufnr) then
-        log.debug("ON_LINES: Invalid prompt_bufnr", self.prompt_bufnr)
+        log.debug("ON_LINES: Invalid prompt_bufnr: " .. self.prompt_bufnr)
         return
       end
 
@@ -1624,8 +1625,7 @@ function Picker:get_result_completor(results_bufnr, _, prompt, status_updater)
       local total_time = (vim.loop.hrtime() - self._timing_picker_start) / 1e6
       local title = self.prompt_title or "untitled"
       local total_count = self.manager:num_results()
-      log.info(string.format("Completed: %5.2fms  %d results [%s]", total_time, total_count, title))
-      self._timing_picker_start = nil
+      log.info(string.format("Completed:   %5.2fms  %d results [%s]", total_time, total_count, title))
     end
   end)
 end
@@ -1840,7 +1840,8 @@ function Picker:_detach()
   self.closed = true
 
   if self.enable_timing then
-    log.info(string.format("=== Picker Close [%s] ===", self.prompt_title or "untitled"))
+    log.info(string.format("=== Picker Close  [%s] ===", self.prompt_title or "untitled"))
+    self._timing_picker_start = nil
   end
 end
 
