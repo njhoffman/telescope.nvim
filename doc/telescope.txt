@@ -3396,6 +3396,14 @@ actions.which_key({prompt_bufnr})              *telescope.actions.which_key()*
 
     - Notes:
       - The defaults can be overridden via |action_generate.which_key|.
+      - Mappings are categorized by origin (`default` | `user_global` |
+        `picker`) with distinct highlights. On overflow, lower-priority
+        categories are dropped first (configurable via
+        `category_drop_order`).
+      - Key codes can be substituted for display via `key_labels` (exact
+        match) and `replace_keys` (Lua-pattern pairs).
+      - The popup re-aligns on `VimResized` by default; set `resize = false`
+        to disable.
 
 
     Parameters: ~
@@ -3783,6 +3791,46 @@ action_generate.which_key({opts})     *telescope.actions.generate.which_key()*
                                             hints floating window
         {zindex}                 (number)   z-index of keymap hints floating
                                             window (default: 100)
+        {categorize_mappings}    (boolean)  group and highlight mappings by
+                                            origin — "default" (built-in
+                                            telescope), "user_global" (your
+                                            setup.defaults.mappings), and
+                                            "picker" (per-picker
+                                            attach_mappings or extension)
+                                            (default: true)
+        {category_drop_order}    (string[]) order in which categories are
+                                            dropped on overflow; "picker" is
+                                            always kept last (default: {
+                                            "default", "user_global" })
+        {default_hl}             (table)    { mode, keybind, name } hl
+                                            override for `default`-origin
+                                            mappings (default: links to
+                                            TelescopeWhichKeyDefault{Mode,
+                                            Bind,Name})
+        {user_hl}                (table)    { mode, keybind, name } hl
+                                            override for `user_global`-origin
+                                            mappings (default: links to
+                                            TelescopeWhichKeyUser{Mode,Bind,
+                                            Name})
+        {picker_hl}              (table)    { mode, keybind, name } hl
+                                            override for `picker`-origin
+                                            mappings (default: links to
+                                            TelescopeWhichKeyPicker{Mode,
+                                            Bind,Name})
+        {key_labels}             (table)    exact-match substitutions applied
+                                            before display, e.g. { ["<CR>"] =
+                                            "Enter" }
+        {replace_keys}           (table)    list of { pattern, replacement }
+                                            Lua-pattern pairs applied after
+                                            key_labels; use for generic
+                                            rewrites like { { "^<Plug>", ""
+                                            } }
+        {use_default_key_labels} (boolean)  merge a small built-in
+                                            `key_labels` table for common
+                                            keys (default: false)
+        {resize}                 (boolean)  reopen the popup on VimResized so
+                                            it reflows for the new editor
+                                            size (default: true)
 
 
 
