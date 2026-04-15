@@ -261,6 +261,142 @@ action_set.scroll_previewer = function(prompt_bufnr, direction)
   end
 end
 
+--- Scrolls the previewer by an explicit number of lines, ignoring `scroll_speed`.
+--- Negative values scroll up, positive values scroll down.
+---@param prompt_bufnr number: The prompt bufnr
+---@param lines number: Signed number of lines to scroll
+action_set.scroll_previewer_by = function(prompt_bufnr, lines)
+  local previewer = __scroll_previewer(prompt_bufnr)
+  if previewer and previewer.scroll_fn and lines ~= 0 then
+    previewer:scroll_fn(math.floor(lines))
+  end
+end
+
+--- Scrolls the previewer by one full window-height page.
+--- Negative direction scrolls up, positive scrolls down.
+---@param prompt_bufnr number: The prompt bufnr
+---@param direction number: Valid directions: -1 (page up), 1 (page down)
+action_set.scroll_previewer_page = function(prompt_bufnr, direction)
+  local previewer = __scroll_previewer(prompt_bufnr)
+  if not (previewer and previewer.scroll_fn) then
+    return
+  end
+  local status = state.get_status(prompt_bufnr)
+  local preview_winid = status.layout.preview and status.layout.preview.winid
+  if not preview_winid then
+    return
+  end
+  local page = api.nvim_win_get_height(preview_winid)
+  if page > 0 then
+    previewer:scroll_fn(page * direction)
+  end
+end
+
+--- Animate the previewer scroll over several frames instead of jumping.
+--- Internal helper shared by the `smoothscroll_*` public entry points.
+---@param prompt_bufnr number
+---@param lines number Signed target delta in lines (negative = up)
+---@param opts table? { interval_ms = 16, max_duration_ms = 150 }
+local __smoothscroll_previewer = function(prompt_bufnr, lines, opts)
+  opts = opts or {}
+  local interval = math.max(1, opts.interval_ms or 16)
+  local max_duration = math.max(interval, opts.max_duration_ms or 150)
+
+  local picker = action_state.get_current_picker(prompt_bufnr)
+  if not picker then
+    return
+  end
+  local previewer = picker.previewer
+  local status = state.get_status(prompt_bufnr)
+  local preview_winid = status.layout.preview and status.layout.preview.winid
+  if type(previewer) ~= "table" or not preview_winid or not previewer.scroll_fn or lines == 0 then
+    return
+  end
+
+  -- Cancel any in-flight smooth scroll on this picker so repeated taps restart
+  -- cleanly instead of stacking up timers.
+  if picker._smooth_scroll_timer then
+    picker._smooth_scroll_timer:stop()
+    picker._smooth_scroll_timer = nil
+  end
+
+  local total = math.floor(lines)
+  local abs_total = math.abs(total)
+  local max_steps = math.max(1, math.floor(max_duration / interval))
+  local step_count = math.min(abs_total, max_steps)
+  if step_count <= 1 then
+    previewer:scroll_fn(total)
+    return
+  end
+
+  local sign = total > 0 and 1 or -1
+  local base = math.floor(abs_total / step_count)
+  local remainder = abs_total - base * step_count
+
+  local timer = vim.uv.new_timer()
+  picker._smooth_scroll_timer = timer
+  table.insert(picker.timers, timer)
+  local step = 0
+
+  timer:start(
+    0,
+    interval,
+    vim.schedule_wrap(function()
+      if picker._smooth_scroll_timer ~= timer or picker.closed then
+        timer:stop()
+        return
+      end
+      local cur_status = state.get_status(prompt_bufnr)
+      local pw = cur_status.layout and cur_status.layout.preview and cur_status.layout.preview.winid
+      if not pw or not api.nvim_win_is_valid(pw) then
+        timer:stop()
+        picker._smooth_scroll_timer = nil
+        return
+      end
+      step = step + 1
+      local chunk = base + (step <= remainder and 1 or 0)
+      if chunk > 0 then
+        previewer:scroll_fn(chunk * sign)
+      end
+      if step >= step_count then
+        timer:stop()
+        picker._smooth_scroll_timer = nil
+      end
+    end)
+  )
+end
+
+--- Smoothly scrolls the previewer by an explicit number of lines over a short
+--- animation instead of jumping in a single step.
+--- Negative values scroll up, positive values scroll down. Calls while an
+--- animation is already running cancel the prior animation and start fresh.
+---@param prompt_bufnr number: The prompt bufnr
+---@param lines number: Signed number of lines to scroll
+---@param opts table?: Optional tuning:
+---       - interval_ms:     ms between animation frames. Default: 16
+---       - max_duration_ms: cap on total animation duration. Default: 150
+action_set.smoothscroll_previewer_by = function(prompt_bufnr, lines, opts)
+  __smoothscroll_previewer(prompt_bufnr, lines, opts)
+end
+
+--- Smoothly scrolls the previewer by one full page (preview window height).
+--- Negative direction scrolls up, positive scrolls down.
+---@param prompt_bufnr number: The prompt bufnr
+---@param direction number: Valid directions: -1 (page up), 1 (page down)
+---@param opts table?: Optional tuning, see `smoothscroll_previewer_by`
+action_set.smoothscroll_previewer_page = function(prompt_bufnr, direction, opts)
+  local status = state.get_status(prompt_bufnr)
+  local preview_winid = status.layout.preview and status.layout.preview.winid
+  if not preview_winid then
+    return
+  end
+  local page = api.nvim_win_get_height(preview_winid)
+  if page <= 0 or direction == 0 then
+    return
+  end
+  __smoothscroll_previewer(prompt_bufnr, page * direction, opts)
+end
+
 --- Scrolls the previewer to the left or right.
 --- Defaults to a half page scroll, but can be overridden using the `scroll_speed`
 --- option in `layout_config`. See |telescope.layout| for more details.

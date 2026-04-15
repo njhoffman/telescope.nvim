@@ -222,6 +222,54 @@ actions.preview_scrolling_down = function(prompt_bufnr)
   action_set.scroll_previewer(prompt_bufnr, 1)
 end
 
+--- Scroll the preview window up by one line
+---@param prompt_bufnr number: The prompt bufnr
+actions.preview_scrolling_up_line = function(prompt_bufnr)
+  action_set.scroll_previewer_by(prompt_bufnr, -1)
+end
+
+--- Scroll the preview window down by one line
+---@param prompt_bufnr number: The prompt bufnr
+actions.preview_scrolling_down_line = function(prompt_bufnr)
+  action_set.scroll_previewer_by(prompt_bufnr, 1)
+end
+
+--- Scroll the preview window up by one full page (preview window height)
+---@param prompt_bufnr number: The prompt bufnr
+actions.preview_scrolling_page_up = function(prompt_bufnr)
+  action_set.scroll_previewer_page(prompt_bufnr, -1)
+end
+
+--- Scroll the preview window down by one full page (preview window height)
+---@param prompt_bufnr number: The prompt bufnr
+actions.preview_scrolling_page_down = function(prompt_bufnr)
+  action_set.scroll_previewer_page(prompt_bufnr, 1)
+end
+
+--- Smoothly scroll the preview window up by one line
+---@param prompt_bufnr number: The prompt bufnr
+actions.preview_smoothscrolling_up_line = function(prompt_bufnr)
+  action_set.smoothscroll_previewer_by(prompt_bufnr, -1)
+end
+
+--- Smoothly scroll the preview window down by one line
+---@param prompt_bufnr number: The prompt bufnr
+actions.preview_smoothscrolling_down_line = function(prompt_bufnr)
+  action_set.smoothscroll_previewer_by(prompt_bufnr, 1)
+end
+
+--- Smoothly scroll the preview window up by one full page (preview window height)
+---@param prompt_bufnr number: The prompt bufnr
+actions.preview_smoothscrolling_page_up = function(prompt_bufnr)
+  action_set.smoothscroll_previewer_page(prompt_bufnr, -1)
+end
+
+--- Smoothly scroll the preview window down by one full page (preview window height)
+---@param prompt_bufnr number: The prompt bufnr
+actions.preview_smoothscrolling_page_down = function(prompt_bufnr)
+  action_set.smoothscroll_previewer_page(prompt_bufnr, 1)
+end
+
 --- Scroll the preview window to the left
 ---@param prompt_bufnr number: The prompt bufnr
 actions.preview_scrolling_left = function(prompt_bufnr)
