@@ -76,7 +76,7 @@ return function(opts)
           end
           timing_stats = {
             command = cmd_string,
-            start_time = vim.loop.hrtime(),
+            start_time = vim.uv.hrtime(),
             entry_count = 0,
             first_entry_time = nil,
           }
@@ -114,7 +114,7 @@ return function(opts)
 
           -- Record first entry time
           if enable_timing and num_results == 1 then
-            timing_stats.first_entry_time = vim.loop.hrtime()
+            timing_stats.first_entry_time = vim.uv.hrtime()
             local time_to_first = (timing_stats.first_entry_time - timing_stats.start_time) / 1e6
             log.debug(string.format(" - First entry: %5.2fms", time_to_first))
           end
@@ -134,7 +134,7 @@ return function(opts)
         -- Log completion stats
         if enable_timing then
           timing_stats.entry_count = num_results
-          timing_stats.duration_ms = (vim.loop.hrtime() - timing_stats.start_time) / 1e6
+          timing_stats.duration_ms = (vim.uv.hrtime() - timing_stats.start_time) / 1e6
           log_timing_stats(timing_stats)
         end
 

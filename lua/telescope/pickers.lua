@@ -622,7 +622,7 @@ function Picker:find()
   local enable_timing = vim.F.if_nil(self.enable_timing, false)
   local timing = {}
   if enable_timing then
-    timing.picker_start = vim.loop.hrtime()
+    timing.picker_start = vim.uv.hrtime()
     self._timing_picker_start = timing.picker_start
     log.info(string.format("=== Picker Timing [%s] ===", self.prompt_title or "untitled"))
   end
@@ -646,14 +646,14 @@ function Picker:find()
   api.nvim_exec_autocmds("User", { pattern = "TelescopeFindPre" })
 
   if enable_timing then
-    timing.layout_start = vim.loop.hrtime()
+    timing.layout_start = vim.uv.hrtime()
   end
 
   local layout = self:create_layout()
   layout:mount()
 
   if enable_timing then
-    timing.layout_mounted = vim.loop.hrtime()
+    timing.layout_mounted = vim.uv.hrtime()
     local layout_diff = (timing.layout_mounted - timing.layout_start) / 1e6
     local layout_time = (timing.layout_mounted - timing.picker_start) / 1e6
     log.debug(string.format("Layout mount: %5.2fms  +%.2fms", layout_time, layout_diff))
@@ -707,7 +707,7 @@ function Picker:find()
   end
 
   if enable_timing then
-    timing.ui_setup_complete = vim.loop.hrtime()
+    timing.ui_setup_complete = vim.uv.hrtime()
     local ui_diff = (timing.ui_setup_complete - timing.layout_mounted) / 1e6
     local ui_time = (timing.ui_setup_complete - timing.picker_start) / 1e6
     log.debug(string.format("UI init:      %5.2fms  %+.2fms", ui_time, ui_diff))
@@ -732,7 +732,7 @@ function Picker:find()
   end
 
   if enable_timing then
-    timing.ready_for_input = vim.loop.hrtime()
+    timing.ready_for_input = vim.uv.hrtime()
     local ready_diff = (timing.ready_for_input - timing.ui_setup_complete) / 1e6
     local ready_time = (timing.ready_for_input - timing.picker_start) / 1e6
     log.info(string.format("Input ready:  %5.2fms  %+.2fms", ready_time, ready_diff))
@@ -1543,7 +1543,7 @@ function Picker:get_result_processor(find_id, prompt, status_updater)
   local count = 0
   local first_result_logged = false
   local enable_timing = vim.F.if_nil(self.enable_timing, false)
-  local result_start = enable_timing and vim.loop.hrtime() or nil
+  local result_start = enable_timing and vim.uv.hrtime() or nil
 
   local cb_add = function(score, entry)
     -- may need the prompt for tiebreak
@@ -1553,8 +1553,8 @@ function Picker:get_result_processor(find_id, prompt, status_updater)
     -- Log first result displayed
     if enable_timing and not first_result_logged then
       first_result_logged = true
-      local display_time = (vim.loop.hrtime() - result_start) / 1e6
-      local total_time = (vim.loop.hrtime() - self._timing_picker_start) / 1e6
+      local display_time = (vim.uv.hrtime() - result_start) / 1e6
+      local total_time = (vim.uv.hrtime() - self._timing_picker_start) / 1e6
       log.debug(string.format("First result: %5.2fms  %.2fms  '%s'", display_time, total_time, prompt))
     end
   end
@@ -1622,7 +1622,7 @@ function Picker:get_result_completor(results_bufnr, _, prompt, status_updater)
     self:_on_complete()
 
     if self.enable_timing and self._timing_picker_start then
-      local total_time = (vim.loop.hrtime() - self._timing_picker_start) / 1e6
+      local total_time = (vim.uv.hrtime() - self._timing_picker_start) / 1e6
       local title = self.prompt_title or "untitled"
       local total_count = self.manager:num_results()
       log.info(string.format("Completed:   %5.2fms  %d results [%s]", total_time, total_count, title))
