@@ -166,7 +166,6 @@ finders._new = function(opts)
 end
 
 finders.new_async_job = function(opts)
-  -- Pass through enable_timing option
   if opts.writer then
     return finders._new(opts)
   end
@@ -174,11 +173,12 @@ finders.new_async_job = function(opts)
   return async_job_finder(opts)
 end
 
-finders.new_job = function(command_generator, entry_maker, _, cwd)
+finders.new_job = function(command_generator, entry_maker, _, cwd, enable_timing)
   return async_job_finder {
     command_generator = command_generator,
     entry_maker = entry_maker,
     cwd = cwd,
+    enable_timing = enable_timing,
   }
 end
 

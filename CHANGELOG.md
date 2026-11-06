@@ -7,6 +7,23 @@ fork release, so see upstream for earlier history.
 
 ## [Unreleased]
 
+## [0.7.6] - 2026-11-05
+
+### Changed
+
+- `strip_path_prefix` only changes what is displayed and searched. Selecting an entry opens the full
+  path, where it used to open the stripped path.
+
+### Fixed
+
+- Finder failures are logged with their `Finder failed with msg:` prefix.
+- `enable_timing` passed to `live_grep` reaches its finder.
+- `builtin.resume` keeps a picker's own `preview.debounce`.
+
+### Removed
+
+- Stray tracked files `.claude/session-summary.md` and `doc/specs/todo.md`.
+
 ## [0.7.5] - 2026-11-05
 
 ### Fixed

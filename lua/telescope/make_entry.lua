@@ -459,8 +459,15 @@ function make_entry.gen_from_quickfix(opts)
 
   local hidden = utils.is_path_hidden(opts)
 
+  local strip = function(filename)
+    if filename and strip_prefix and vim.startswith(filename, strip_prefix) then
+      return filename:sub(#strip_prefix + 1)
+    end
+    return filename
+  end
+
   local make_display = function(entry)
-    local display_filename, path_style = utils.transform_path(opts, entry.filename)
+    local display_filename, path_style = utils.transform_path(opts, strip(entry.filename))
     local display_string = string.format("%s:%d:%d", display_filename, entry.lnum, entry.col)
     if hidden then
       display_string = string.format("%4d:%2d", entry.lnum, entry.col)
@@ -482,13 +489,9 @@ function make_entry.gen_from_quickfix(opts)
   return function(entry)
     local filename = utils.if_nil(entry.filename, get_filename(entry.bufnr))
 
-    if filename and strip_prefix and filename:match("^" .. vim.pesc(strip_prefix)) then
-      filename = filename:gsub("^" .. vim.pesc(strip_prefix), "")
-    end
-
     return make_entry.set_default_entry_mt({
       value = entry,
-      ordinal = (not hidden and filename or "") .. " " .. entry.text,
+      ordinal = (not hidden and strip(filename) or "") .. " " .. entry.text,
       display = make_display,
 
       bufnr = entry.bufnr,

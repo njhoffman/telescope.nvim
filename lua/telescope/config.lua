@@ -951,9 +951,11 @@ append(
   "strip_path_prefix",
   nil,
   [[
-    String that will be stripped from the beginning of file paths.
-    This is useful when running in containers where file paths start
-    with a specific prefix that you want to remove for better display.
+    String that will be stripped from the beginning of file paths in
+    quickfix-style entries. This is useful when running in containers where
+    file paths start with a specific prefix that you want to remove for better
+    display. Only the display and the search text change; selecting an entry
+    still opens the full path.
     Example: "/app/"
     Default: nil]]
 )

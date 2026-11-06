@@ -347,6 +347,7 @@ function Picker:new(opts)
     debounce = utils.if_nil(tonumber(opts.debounce), nil),
     preview_debounce = tonumber(
       (type(opts.preview) == "table" and opts.preview.debounce)
+        or opts.preview_debounce -- carried over by builtin.resume
         or (type(config.values.preview) == "table" and config.values.preview.debounce)
         or 0
     ),
@@ -800,7 +801,7 @@ function Picker:find()
         end)
 
         if not ok then
-          log.error("Finder failed with msg: " .. type(msg) == "string" and msg or vim.inspect(msg))
+          log.error("Finder failed with msg: " .. (type(msg) == "string" and msg or vim.inspect(msg)))
         end
 
         local diff_time = (vim.uv.hrtime() - start_time) / 1e6

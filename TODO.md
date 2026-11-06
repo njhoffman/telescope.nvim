@@ -32,19 +32,18 @@ TODO/FIXME/HACK comments in `lua/` are upstream's and are not tracked here.
       must close them. `__smoothscroll_previewer` (`lua/telescope/actions/set.lua:336`) allocates a timer per tap and
       appends it to `picker.timers`. Found by reading the code. Fix: close with an `is_closing` guard, and reuse one
       timer per picker for smooth scrolling.
-- [ ] **Finder failure log loses its message prefix.** (p3) [bug] Operator precedence in the log call.
+- [x] **Finder failure log loses its message prefix.** (p3) [bug] Operator precedence in the log call.
       `lua/telescope/pickers.lua:801` evaluates `"..." .. type(msg) == "string"` as false, so only `vim.inspect(msg)` is
       logged. The fork also raised this from upstream's `log.warn` to `log.error`. Fix: parenthesize the conditional.
-- [ ] **strip_path_prefix does more than its docs say.** (p3) [bug] Documented as a display option, but it rewrites the path used to open the file.
+- [x] **strip_path_prefix does more than its docs say.** (p3) [bug] Documented as a display option, but it rewrites the path used to open the file.
       `lua/telescope/make_entry.lua:488` changes `filename`, which feeds `entry.filename` and `ordinal`, and only
-      `gen_from_quickfix` applies it, and `from_entry` opens `entry.filename`, so setting it changes which file opens.
-      Nothing in the nvim config sets it today. Likely meant as display only, as the docs say; confirm, then strip only
-      in `make_display`.
-- [ ] **Per-picker enable_timing misses live_grep.** (p3) [bug] `finders.new_job` does not forward the option.
+      Now display and search text only: `entry.filename` keeps the full path, so selecting opens the right file. Other
+      entry makers still don't apply it.
+- [x] **Per-picker enable_timing misses live_grep.** (p3) [bug] `finders.new_job` does not forward the option.
       `lua/telescope/finders.lua` builds `async_job_finder` from three fixed fields, so job-based pickers only honor the
       global setting, while `TIMING_DIAGNOSTICS.md` documents per-picker use. The "Pass through enable_timing" comment in
       `new_async_job` has no code behind it.
-- [ ] **Resume drops per-picker preview.debounce.** (p3) [bug] Only the global setting survives `builtin.resume`.
+- [x] **Resume drops per-picker preview.debounce.** (p3) [bug] Only the global setting survives `builtin.resume`.
       Reproduced: a picker made with `{ preview = { debounce = 20 } }` has no `_preview_refresh_debounced` after resume.
       Fix: keep the value on the picker and read it in `Picker:new`.
 
@@ -127,7 +126,7 @@ TODO/FIXME/HACK comments in `lua/` are upstream's and are not tracked here.
       gitsigns are optional.
 - [x] **Fix the version in CLAUDE.md.** (p3) [docs] It says Neovim v0.10.0+ while `plugin/telescope.lua` requires 0.10.4.
       Update together with the 0.11 decision in project 2.
-- [ ] **Remove stray tracked files.** (p3) [chore] Both are session notes rather than project files.
+- [x] **Remove stray tracked files.** (p3) [chore] Both are session notes rather than project files.
       `.claude/session-summary.md` is tracked although `.claude/` is ignored. `doc/specs/todo.md` is one URL with raw ANSI
       escapes, pointing at upstream PR 3540, which closed unmerged.
 - [ ] **Remove the machine-specific test path.** (p3) [chore] `scripts/minimal_init.vim` hardcodes a lazy.nvim plenary path.

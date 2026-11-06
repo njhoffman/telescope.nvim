@@ -178,7 +178,7 @@ files.live_grep = function(opts)
     end
 
     return flatten { args, "--", prompt, search_list }
-  end, opts.entry_maker or make_entry.gen_from_vimgrep(opts), nil, opts.cwd)
+  end, opts.entry_maker or make_entry.gen_from_vimgrep(opts), nil, opts.cwd, opts.enable_timing)
 
   pickers
     .new(opts, {
