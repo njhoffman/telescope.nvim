@@ -1758,7 +1758,9 @@ function pickers.on_close_prompt(prompt_bufnr)
         picker.cache_picker.is_cached = true
         picker.cache_picker.timestamp = os.time()
         picker.cache_picker.cwd = vim.fn.getcwd()
-        picker.cache_picker.project = require("project_nvim").get_project_root()
+        -- project.nvim is optional
+        local has_project, project = pcall(require, "project_nvim")
+        picker.cache_picker.project = has_project and project.get_project_root() or nil
         table.insert(cached_pickers, 1, picker)
       end
 
