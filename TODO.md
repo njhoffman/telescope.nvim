@@ -2,9 +2,78 @@
 
 Issues and suggestions for this fork of telescope.nvim. Reviewed: 2026-11-05
 
-Baseline at review: fork master `cce6200`, upstream master `40aedd8`, 133 fork-only and 29
-upstream-only commits, merge base `5255aa2` (upstream tag v0.2.2). About 80 inherited
-TODO/FIXME/HACK comments in `lua/` are upstream's and are not tracked here.
+Baseline at review: fork master `8c5b79f` (v0.7.7), level with upstream master `40aedd8`. About 80
+inherited TODO/FIXME/HACK comments in `lua/` are upstream's and are not tracked here.
+
+## 1. Bugs in fork code
+
+- [ ] **get_minimal only overlaps windows when mirrored in the vertical layout.** (p3) [bug] Its vertical borders assume an overlap that the default layout never applies.
+      `lua/telescope/pickers/layout_strategies.lua` has `self.theme == "minimal"` only in the `mirror` branch of `vertical`.
+      Probed at 200x60 with a preview: prompt row 34 and results row 31 at equal zindex, so nothing overlaps, and the 15-line
+      cap leaves one results row. `themes.lua` puts a literal `x` in borders it expects to hide, so it likely shows.
+      Fix: apply the offsets in the non-mirrored branch and relax the height cap, or drop vertical support.
+- [ ] **which_key links to highlight groups that don't exist.** (p3) [bug] `TelescopeResultsKeyword` and `TelescopePrompt` are undefined after setup.
+      `lua/telescope/actions/_which_key/highlights.lua` links `TelescopeWhichKeyPickerBind` to the first and
+      `TelescopeWhichKeyNormal` to the second, so picker-specific keys lose their intended emphasis unless a colorscheme
+      defines them. Fix: link to defined groups, such as `TelescopePromptNormal` for the window.
+- [ ] **enable_timing prints into the message area.** (p3) [bug] Info-level lines go to `:messages` as well as the log file.
+      `lua/telescope/log.lua` keeps plenary's default console output. Confirmed with `log.info`: each picker adds at least
+      four lines (start, input ready, completed, close), which clutters normal use while profiling. Fix: log the timing
+      lines to the file only, for example with a dedicated logger using `use_console = false`.
+- [ ] **Oldfiles rewrites slashes in protocol paths on Windows.** (p3) [bug] The session-buffer loop computes `protocol` but converts anyway.
+      `lua/telescope/builtin/__internal.lua:566` turns `oil://x` into `oil:\\x`. `has_protocol` also uses `[A-z0-9]`, which
+      matches `[ \ ] ^ _` and a backtick. Found by reading; not run on Windows. Fix: skip the conversion for protocol paths and use
+      `%a[%w+.-]*://`.
+- [ ] **Remove the Neovim version check in the diagnostics picker.** (p3) [bug] `vim.version().minor > 9` is obsolete and would misfire on Neovim 1.0.
+      `lua/telescope/builtin/__diagnostics.lua:89`: with minor 0, an empty severity table would no longer be cleared.
+      Upstream has the same line, and the 0.11 minimum makes the check unnecessary.
+
+## 2. Tests and CI
+
+- [ ] **Resolve the three pending tests.** (p3) [test] They are skipped, not passing, and all are inherited.
+      `action_spec.lua:491` (select and edit compatibility) and `telescope_spec.lua:98` (fuzzy_file ordering) have no
+      implementation decision recorded. `find_files_spec.lua:53` (devicons) can't run as written: CI clones
+      `../nvim-web-devicons`, but `minimal_init.vim` never adds it to the runtimepath. Implement or delete each.
+- [ ] **Add specs for the remaining fork options.** (p3) [test] Grep of `lua/tests` finds no coverage for them.
+      Missing: `scroll_previewer_by` and `scroll_previewer_page` without animation, and the center layout's `results_height`,
+      including a value larger than the available height. Oldfiles has no specs either, which matters for the Windows bug.
+- [ ] **Test the minimum Neovim version.** (p3) [test] The CI matrix runs only stable and nightly, while `plugin/telescope.lua` accepts any 0.11.
+      Nothing checks the floor once stable moves past it. The README says `>=v0.11.7` and links to v0.11.6, which is inherited.
+      Fix: add a pinned 0.11 to `ci.yml` and make the README and the check agree.
+- [ ] **Check docs on push.** (p3) [chore] `docgen.yml` runs only on pull requests, and this fork pushes straight to master.
+      `make docgen` is clean today, but only because it was run by hand. Fix: add `push: branches: [master]`.
+- [ ] **Extend luacheck to the specs.** (p3) [chore] `make lint` covers `lua/telescope` only, and `lua/tests` has 6 warnings.
+      `luacheck lua/tests` reports 4 W211 and 2 W111. Fix them and lint both paths, keeping any test globals in `.luacheckrc`.
+
+## 3. Docs and cleanup
+
+- [ ] **Correct the documented log path.** (p2) [docs] Following the docs leads to a file that isn't being written.
+      `TIMING_DIAGNOSTICS.md:141` and `CLAUDE.md:254` say `~/.cache/nvim/telescope.log`. On the local Neovim 0.13-dev it is
+      `~/.local/state/nvim/logs/telescope.log`, and an orphaned 1.7 MB copy sits at `~/.local/state/nvim/telescope.log`.
+      Fix: document `:echo stdpath("log")`. The `level = 'info'` advice is also the default, and detail needs `'debug'`.
+- [ ] **Update stale sections of CLAUDE.md.** (p3) [docs] Several parts predate the upstream merge.
+      Docgen commands (lines 36-40) still describe tree-sitter-lua, while `make docgen` now uses docgen.nvim from `.deps`. Lines
+      153 and 207 require tree-sitter annotations, and line 199 calls `0.1.x` the recommended branch. The timing file list
+      omits `finders/timing.lua`, as does `TIMING_DIAGNOSTICS.md`. The custom features section covers timing only.
+- [ ] **Decide whether cached pickers need project fields.** (p3) [refactor] `timestamp`, `cwd` and `project` are written but never read.
+      `lua/telescope/pickers.lua:1764` sets them on every close, and nothing here or in the nvim config uses them, yet
+      `project` is the only reason telescope touches project.nvim. Fix: remove them, or use them in a picker of cached pickers.
+- [ ] **Review inherited project files.** (p3) [chore] Several still describe upstream's project rather than this fork.
+      `.github/FUNDING.yml`, `.github/ISSUE_TEMPLATE/config.yml`, `.github/dependabot.yml`, the README LuaRocks badge, and
+      `telescope.nvim-scm-1.rockspec`, which nothing publishes since the release workflow was removed.
+- [ ] **Remove leftover local refs.** (p3) [chore] Neither is needed now.
+      The `sync-upstream` branch is fully merged into master. The `minimal-theme` remote only served the theme port.
+
+## 4. Upstream
+
+- [ ] **Offer the oneshot yield fix upstream.** (p3) [chore] Upstream's read loop has the same always-true check.
+      `async_oneshot_finder.lua` upstream has `if num_results % await_count then`. The fix here needs `vim.in_fast_event()`
+      too, and the description should say it is a correctness cleanup with no measurable speedup in a real picker. Opening a
+      PR is public, so it is your call.
+- [ ] **Watch open upstream PRs.** (p3) [chore] Upstream has no new commits since `40aedd8`, but these touch code this fork uses.
+      #3690 selection caret while streaming (`pickers.lua`), #3691 nil entries in `get_substr_matcher`, #3686 prefilter tags
+      with whitespace, #3682 `bufadd()` instead of `fnameescape()`, #3697 custom scheme previews, #3694 picker ref count.
+      Titles only; not reviewed. Cherry-pick any that fix something hit here.
 
 ## Completed
 
