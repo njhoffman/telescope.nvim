@@ -52,8 +52,8 @@
 
 local api = vim.api
 
-local resolve = require("telescope.config.resolve")
-local p_window = require("telescope.pickers.window")
+local resolve = require "telescope.config.resolve"
+local p_window = require "telescope.pickers.window"
 
 local get_border_size = function(opts)
   if opts.window.border == false then
@@ -64,8 +64,7 @@ local get_border_size = function(opts)
 end
 
 local calc_tabline = function(max_lines)
-  local tbln = (vim.o.showtabline == 2)
-    or (vim.o.showtabline == 1 and #api.nvim_list_tabpages() > 1)
+  local tbln = (vim.o.showtabline == 2) or (vim.o.showtabline == 1 and #api.nvim_list_tabpages() > 1)
   if tbln then
     max_lines = max_lines - 1
   end
@@ -110,7 +109,7 @@ local get_valid_configuration_keys = function(strategy_config)
 end
 
 local adjust_pos = function(pos, ...)
-  for _, opts in ipairs({ ... }) do
+  for _, opts in ipairs { ... } do
     opts.col = opts.col and opts.col + pos[1]
     opts.line = opts.line and opts.line + pos[2]
   end
@@ -126,8 +125,7 @@ local function validate_layout_config(strategy_name, configuration, values, defa
   local valid_configuration_keys = get_valid_configuration_keys(configuration)
 
   -- If no default_layout_config provided, check Telescope's config values
-  default_layout_config =
-    vim.F.if_nil(default_layout_config, require("telescope.config").values.layout_config)
+  default_layout_config = vim.F.if_nil(default_layout_config, require("telescope.config").values.layout_config)
 
   local result = {}
   local get_value = function(k)
@@ -152,10 +150,7 @@ local function validate_layout_config(strategy_name, configuration, values, defa
     end
 
     if val == nil then
-      if
-        default_layout_config[strategy_name] ~= nil
-        and default_layout_config[strategy_name][k] ~= nil
-      then
+      if default_layout_config[strategy_name] ~= nil and default_layout_config[strategy_name][k] ~= nil then
         val = default_layout_config[strategy_name][k]
       else
         val = default_layout_config[k]
@@ -270,11 +265,7 @@ local function make_documented_layout(name, layout_config, layout)
       validate_layout_config(
         name,
         layout_config,
-        vim.tbl_deep_extend(
-          "keep",
-          vim.F.if_nil(override_layout, {}),
-          vim.F.if_nil(self.layout_config, {})
-        )
+        vim.tbl_deep_extend("keep", vim.F.if_nil(override_layout, {}), vim.F.if_nil(self.layout_config, {}))
       )
     )
   end
@@ -334,16 +325,15 @@ layout_strategies.horizontal = make_documented_layout(
       -- Cap over/undersized width (with previewer)
       width, w_space = calc_size_and_spacing(width, max_columns, bs, 2, 4, 1)
 
-      preview.width =
-        resolve.resolve_width(vim.F.if_nil(layout_config.preview_width, function(_, cols)
-          if cols < 150 then
-            return math.floor(cols * 0.4)
-          elseif cols < 200 then
-            return 80
-          else
-            return 120
-          end
-        end))(self, width, max_lines)
+      preview.width = resolve.resolve_width(vim.F.if_nil(layout_config.preview_width, function(_, cols)
+        if cols < 150 then
+          return math.floor(cols * 0.4)
+        elseif cols < 200 then
+          return 80
+        else
+          return 120
+        end
+      end))(self, width, max_lines)
 
       results.width = width - preview.width - w_space
       prompt.width = results.width
@@ -391,20 +381,13 @@ layout_strategies.horizontal = make_documented_layout(
       prompt.line = results.line + results.height + bs + (self.theme == "minimal" and 0 or 1)
       prompt.zindex = results.zindex + (self.theme == "minimal" and 1 or 0)
     else
-      error(
-        string.format(
-          "Unknown prompt_position: %s\n%s",
-          self.window.prompt_position,
-          vim.inspect(layout_config)
-        )
-      )
+      error(string.format("Unknown prompt_position: %s\n%s", self.window.prompt_position, vim.inspect(layout_config)))
     end
 
     local anchor = layout_config.anchor or ""
     local anchor_padding = layout_config.anchor_padding or 1
 
-    local anchor_pos =
-      resolve.resolve_anchor_pos(anchor, width, height, max_columns, max_lines, anchor_padding)
+    local anchor_pos = resolve.resolve_anchor_pos(anchor, width, height, max_columns, max_lines, anchor_padding)
     adjust_pos(anchor_pos, prompt, results, preview)
 
     if tbln then
@@ -509,13 +492,7 @@ layout_strategies.center = make_documented_layout(
         prompt.title = { { pos = "S", text = prompt.title } }
       end
     else
-      error(
-        string.format(
-          "Unknown prompt_position: %s\n%s",
-          self.window.prompt_position,
-          vim.inspect(layout_config)
-        )
-      )
+      error(string.format("Unknown prompt_position: %s\n%s", self.window.prompt_position, vim.inspect(layout_config)))
     end
 
     local width_padding = math.floor((max_columns - width) / 2) + bs + 1
@@ -524,16 +501,15 @@ layout_strategies.center = make_documented_layout(
     local anchor = layout_config.anchor or ""
     local anchor_padding = layout_config.anchor_padding or 1
 
-    local anchor_pos =
-      resolve.resolve_anchor_pos(anchor, width, height, max_columns, max_lines, anchor_padding)
+    local anchor_pos = resolve.resolve_anchor_pos(anchor, width, height, max_columns, max_lines, anchor_padding)
     adjust_pos(anchor_pos, prompt, results, preview)
 
     -- Vertical anchoring (S or N variations) ignores layout_config.mirror
     anchor = anchor:upper()
     local mirror
-    if anchor:find("S") then
+    if anchor:find "S" then
       mirror = false
-    elseif anchor:find("N") then
+    elseif anchor:find "N" then
       mirror = true
     else
       mirror = layout_config.mirror
@@ -561,8 +537,7 @@ layout_strategies.center = make_documented_layout(
 
     -- set the height of the results window if specified
     if layout_config.results_height then
-      local diff = results.height
-        - resolve.resolve_height(layout_config.results_height)(self, max_columns, max_lines)
+      local diff = results.height - resolve.resolve_height(layout_config.results_height)(self, max_columns, max_lines)
       results.height = results.height - diff
       results.line = results.line + diff
       preview.height = preview.height + diff
@@ -642,11 +617,7 @@ layout_strategies.cursor = make_documented_layout(
       -- Cap over/undersized width (with preview)
       width, w_space = calc_size_and_spacing(width, max_columns, bs, 2, 4, 0)
 
-      preview.width = resolve.resolve_width(vim.F.if_nil(layout_config.preview_width, 2 / 3))(
-        self,
-        width,
-        max_lines
-      )
+      preview.width = resolve.resolve_width(vim.F.if_nil(layout_config.preview_width, 2 / 3))(self, width, max_lines)
       prompt.width = width - preview.width - w_space
       results.width = prompt.width
     else
@@ -660,7 +631,7 @@ layout_strategies.cursor = make_documented_layout(
 
     local position = api.nvim_win_get_position(winid)
     local winbar = (function()
-      if vim.fn.exists("&winbar") == 1 then
+      if vim.fn.exists "&winbar" == 1 then
         return vim.wo[winid].winbar == "" and 0 or 1
       end
       return 0
@@ -761,11 +732,8 @@ layout_strategies.vertical = make_documented_layout(
       -- Cap over/undersized height (with previewer)
       height, h_space = calc_size_and_spacing(height, max_lines, bs, 3, 6, 2)
 
-      preview.height = resolve.resolve_height(vim.F.if_nil(layout_config.preview_height, 0.5))(
-        self,
-        max_columns,
-        height
-      )
+      preview.height =
+        resolve.resolve_height(vim.F.if_nil(layout_config.preview_height, 0.5))(self, max_columns, height)
     else
       -- Cap over/undersized height (without previewer)
       height, h_space = calc_size_and_spacing(height, max_lines, bs, 2, 4, 1)
@@ -782,56 +750,35 @@ layout_strategies.vertical = make_documented_layout(
     if not layout_config.mirror then
       preview.line = height_padding + (1 + bs)
       if layout_config.prompt_position == "top" then
-        prompt.line = (preview.height == 0) and preview.line
-          or preview.line + preview.height + (1 + bs)
+        prompt.line = (preview.height == 0) and preview.line or preview.line + preview.height + (1 + bs)
         results.line = prompt.line + prompt.height + (1 + bs)
       elseif layout_config.prompt_position == "bottom" then
-        results.line = (preview.height == 0) and preview.line
-          or preview.line + preview.height + (1 + bs)
+        results.line = (preview.height == 0) and preview.line or preview.line + preview.height + (1 + bs)
         prompt.line = results.line + results.height + (1 + bs)
       else
-        error(
-          string.format(
-            "Unknown prompt_position: %s\n%s",
-            self.window.prompt_position,
-            vim.inspect(layout_config)
-          )
-        )
+        error(string.format("Unknown prompt_position: %s\n%s", self.window.prompt_position, vim.inspect(layout_config)))
       end
     else
       if layout_config.prompt_position == "top" then
         prompt.line = height_padding + (1 + bs)
         results.line = prompt.line + prompt.height + (1 + bs) - (self.theme == "minimal" and 1 or 0)
-        preview.line = results.line
-          + results.height
-          + (1 + bs)
-          - (self.theme == "minimal" and 1 or 0)
+        preview.line = results.line + results.height + (1 + bs) - (self.theme == "minimal" and 1 or 0)
         preview.zindex = results.zindex + (self.theme == "minimal" and 1 or 0)
       elseif layout_config.prompt_position == "bottom" then
         results.line = height_padding + (1 + bs)
-        prompt.line = results.line
-          + results.height
-          + (1 + bs)
-          - (self.theme == "minimal" and 1 or 0)
+        prompt.line = results.line + results.height + (1 + bs) - (self.theme == "minimal" and 1 or 0)
         preview.line = prompt.line + prompt.height + (1 + bs) - (self.theme == "minimal" and 1 or 0)
         prompt.zindex = results.zindex + (self.theme == "minimal" and 1 or 0)
         preview.zindex = prompt.zindex + (self.theme == "minimal" and 1 or 0)
       else
-        error(
-          string.format(
-            "Unknown prompt_position: %s\n%s",
-            self.window.prompt_position,
-            vim.inspect(layout_config)
-          )
-        )
+        error(string.format("Unknown prompt_position: %s\n%s", self.window.prompt_position, vim.inspect(layout_config)))
       end
     end
 
     local anchor = layout_config.anchor or ""
     local anchor_padding = layout_config.anchor_padding or 1
 
-    local anchor_pos =
-      resolve.resolve_anchor_pos(anchor, width, height, max_columns, max_lines, anchor_padding)
+    local anchor_pos = resolve.resolve_anchor_pos(anchor, width, height, max_columns, max_lines, anchor_padding)
     adjust_pos(anchor_pos, prompt, results, preview)
 
     if tbln then
@@ -862,8 +809,7 @@ layout_strategies.flex = make_documented_layout(
     horizontal = "Options to pass when switching to horizontal layout",
   }),
   function(self, max_columns, max_lines, layout_config)
-    local flip_columns =
-      vim.F.if_nil(layout_config.flip_columns, layout_config.horizontal.preview_cutoff)
+    local flip_columns = vim.F.if_nil(layout_config.flip_columns, layout_config.horizontal.preview_cutoff)
     local flip_lines = vim.F.if_nil(layout_config.flip_lines, layout_config.vertical.preview_cutoff)
 
     if max_columns < flip_columns and max_lines >= flip_lines then
@@ -908,11 +854,7 @@ layout_strategies.current_buffer = make_documented_layout("current_buffer", {
   prompt.height = 1
   if self.previewer then
     results.height = 10 -- TODO(l-kershaw): make this configurable
-    preview.height = window_height
-      - results.height
-      - prompt.height
-      - 2 * (1 + bs)
-      - 2 * height_padding
+    preview.height = window_height - results.height - prompt.height - 2 * (1 + bs) - 2 * height_padding
   else
     results.height = window_height - prompt.height - (1 + bs) - 2 * height_padding
     preview.height = 0
@@ -961,8 +903,7 @@ layout_strategies.bottom_pane = make_documented_layout(
     local tbln
     max_lines, tbln = calc_tabline(max_lines)
 
-    local height =
-      vim.F.if_nil(resolve.resolve_height(layout_config.height)(self, max_columns, max_lines), 25)
+    local height = vim.F.if_nil(resolve.resolve_height(layout_config.height)(self, max_columns, max_lines), 25)
     if type(layout_config.height) == "table" and type(layout_config.height.padding) == "number" then
       -- Since bottom_pane only has padding at the top, we only need half as much padding in total
       -- This doesn't match the vim help for `resolve.resolve_height`, but it matches expectations
@@ -985,11 +926,7 @@ layout_strategies.bottom_pane = make_documented_layout(
       -- Cap over/undersized width (with preview)
       local width, w_space = calc_size_and_spacing(max_columns, max_columns, bs, 2, 4, 0)
 
-      preview.width = resolve.resolve_width(vim.F.if_nil(layout_config.preview_width, 0.5))(
-        self,
-        width,
-        max_lines
-      )
+      preview.width = resolve.resolve_width(vim.F.if_nil(layout_config.preview_width, 0.5))(self, width, max_lines)
       results.width = width - preview.width - w_space
     else
       results.width = prompt.width
@@ -1021,13 +958,7 @@ layout_strategies.bottom_pane = make_documented_layout(
         results.border = { 1, 1, 0, 1 }
       end
     else
-      error(
-        string.format(
-          "Unknown prompt_position: %s\n%s",
-          self.window.prompt_position,
-          vim.inspect(layout_config)
-        )
-      )
+      error(string.format("Unknown prompt_position: %s\n%s", self.window.prompt_position, vim.inspect(layout_config)))
     end
 
     -- Col

@@ -45,9 +45,17 @@ function M.for_origin(origin, opts)
   end
 
   if origin == "picker" then
-    return { mode = "TelescopeWhichKeyPickerMode", keybind = "TelescopeWhichKeyPickerBind", name = "TelescopeWhichKeyPickerName" }
+    return {
+      mode = "TelescopeWhichKeyPickerMode",
+      keybind = "TelescopeWhichKeyPickerBind",
+      name = "TelescopeWhichKeyPickerName",
+    }
   elseif origin == "user_global" then
-    return { mode = "TelescopeWhichKeyUserMode", keybind = "TelescopeWhichKeyUserBind", name = "TelescopeWhichKeyUserName" }
+    return {
+      mode = "TelescopeWhichKeyUserMode",
+      keybind = "TelescopeWhichKeyUserBind",
+      name = "TelescopeWhichKeyUserName",
+    }
   end
   -- Fall through (default / unknown): legacy behavior, respecting user
   -- overrides via mode_hl / keybind_hl / name_hl.

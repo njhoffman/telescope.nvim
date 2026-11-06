@@ -1,10 +1,10 @@
-local async = require("plenary.async")
-local async_job = require("telescope._")
+local async = require "plenary.async"
+local async_job = require "telescope._"
 local LinesPipe = require("telescope._").LinesPipe
 
-local make_entry = require("telescope.make_entry")
-local config = require("telescope.config")
-local log = require("telescope.log")
+local make_entry = require "telescope.make_entry"
+local config = require "telescope.config"
+local log = require "telescope.log"
 
 local await_count = 1000
 
@@ -91,14 +91,14 @@ return function(opts)
         -- end
 
         stdout = LinesPipe()
-        job = async_job.spawn({
+        job = async_job.spawn {
           command = job_opts.command,
           args = job_opts.args,
           cwd = cwd,
           env = env,
 
           stdout = stdout,
-        })
+        }
 
         job_started = true
       end

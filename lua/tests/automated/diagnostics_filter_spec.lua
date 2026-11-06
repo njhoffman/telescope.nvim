@@ -1,5 +1,5 @@
-local diagnostics = require("telescope.builtin.__diagnostics")
-local pickers = require("telescope.pickers")
+local diagnostics = require "telescope.builtin.__diagnostics"
+local pickers = require "telescope.pickers"
 
 local severity = vim.diagnostic.severity
 
@@ -25,8 +25,8 @@ describe("builtin diagnostics filtering", function()
       return { find = function() end }
     end
     previous_bufnr = vim.api.nvim_get_current_buf()
-    ns = vim.api.nvim_create_namespace("telescope-test-filter")
-    other_ns = vim.api.nvim_create_namespace("telescope-test-filter-other")
+    ns = vim.api.nvim_create_namespace "telescope-test-filter"
+    other_ns = vim.api.nvim_create_namespace "telescope-test-filter-other"
     bufnr = vim.api.nvim_create_buf(false, true)
     vim.api.nvim_buf_set_name(bufnr, vim.fn.tempname() .. ".py")
     vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, { "one", "two", "three" })
@@ -54,18 +54,18 @@ describe("builtin diagnostics filtering", function()
   end)
 
   it("honors an exact severity", function()
-    assert.are.same({ "warn" }, messages({ severity = severity.WARN }))
+    assert.are.same({ "warn" }, messages { severity = severity.WARN })
   end)
 
   it("honors severity_limit as the lowest severity shown", function()
-    assert.are.same({ "error", "warn" }, messages({ severity_limit = severity.WARN }))
+    assert.are.same({ "error", "warn" }, messages { severity_limit = severity.WARN })
   end)
 
   it("honors severity_bound as the highest severity shown", function()
-    assert.are.same({ "hint", "other" }, messages({ severity_bound = severity.HINT }))
+    assert.are.same({ "hint", "other" }, messages { severity_bound = severity.HINT })
   end)
 
   it("honors namespace", function()
-    assert.are.same({ "other" }, messages({ namespace = other_ns }))
+    assert.are.same({ "other" }, messages { namespace = other_ns })
   end)
 end)

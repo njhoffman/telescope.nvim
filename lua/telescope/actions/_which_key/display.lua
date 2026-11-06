@@ -1,4 +1,4 @@
-local entry_display = require("telescope.pickers.entry_display")
+local entry_display = require "telescope.pickers.entry_display"
 
 local M = {}
 

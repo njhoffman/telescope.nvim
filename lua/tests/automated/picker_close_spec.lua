@@ -1,7 +1,7 @@
-local actions = require("telescope.actions")
+local actions = require "telescope.actions"
 local conf = require("telescope.config").values
-local finders = require("telescope.finders")
-local pickers = require("telescope.pickers")
+local finders = require "telescope.finders"
+local pickers = require "telescope.pickers"
 
 describe("closing a picker", function()
   local old_loaded, old_preload
@@ -9,8 +9,8 @@ describe("closing a picker", function()
   local function open_picker()
     local picker = pickers.new({}, {
       prompt_title = "close spec",
-      finder = finders.new_table({ results = { "a", "b" } }),
-      sorter = conf.generic_sorter({}),
+      finder = finders.new_table { results = { "a", "b" } },
+      sorter = conf.generic_sorter {},
     })
     picker:find()
     vim.wait(100)
@@ -30,7 +30,7 @@ describe("closing a picker", function()
 
   it("works without project.nvim and caches no project", function()
     package.preload.project_nvim = function()
-      error("module 'project_nvim' not found")
+      error "module 'project_nvim' not found"
     end
 
     local picker = open_picker()

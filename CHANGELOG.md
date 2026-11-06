@@ -7,6 +7,13 @@ fork release, so see upstream for earlier history.
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-11-05
+
+### Changed
+
+- Lua sources follow upstream's stylua settings again, which keeps upstream merges smaller. No
+  behavior changes.
+
 ## [0.5.0] - 2026-11-05
 
 ### Added

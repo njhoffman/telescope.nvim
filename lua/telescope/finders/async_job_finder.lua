@@ -1,9 +1,9 @@
-local async_job = require("telescope._")
+local async_job = require "telescope._"
 local LinesPipe = require("telescope._").LinesPipe
 
-local make_entry = require("telescope.make_entry")
-local config = require("telescope.config")
-local log = require("telescope.log")
+local make_entry = require "telescope.make_entry"
+local config = require "telescope.config"
+local log = require "telescope.log"
 
 local function format_command(command, args)
   local cmd_str = command
@@ -88,13 +88,13 @@ return function(opts)
     -- if job_opts.writer and Job.is_job(job_opts.writer) then
     --   writer = job_opts.writer
     if opts.writer then
-      error("async_job_finder.writer is not yet implemented")
+      error "async_job_finder.writer is not yet implemented"
       writer = async_job.writer(opts.writer)
     end
 
     local stdout = LinesPipe()
 
-    job = async_job.spawn({
+    job = async_job.spawn {
       command = job_opts.command,
       args = job_opts.args,
       cwd = job_opts.cwd or opts.cwd,
@@ -102,7 +102,7 @@ return function(opts)
       writer = writer,
 
       stdout = stdout,
-    })
+    }
 
     local line_num = 0
     for line in stdout:iter(true) do

@@ -94,19 +94,19 @@ function utils._parse_telescope_desc(desc)
   if not desc then
     return nil, nil, false
   end
-  local origin, body = desc:match("^telescope:([%w_]+)|(.*)$")
+  local origin, body = desc:match "^telescope:([%w_]+)|(.*)$"
   if body then
     return body, origin, false
   end
-  body = desc:match("^telescope|(.*)$")
+  body = desc:match "^telescope|(.*)$"
   if body then
     return body, nil, false
   end
-  origin, body = desc:match("^telescopej:([%w_]+)|(.*)$")
+  origin, body = desc:match "^telescopej:([%w_]+)|(.*)$"
   if body then
     return body, origin, true
   end
-  body = desc:match("^telescopej|(.*)$")
+  body = desc:match "^telescopej|(.*)$"
   if body then
     return body, nil, true
   end

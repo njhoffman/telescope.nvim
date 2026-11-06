@@ -1,4 +1,4 @@
-local resolver = require("telescope.config.resolve")
+local resolver = require "telescope.config.resolve"
 
 local M = {}
 
@@ -55,7 +55,7 @@ function M.truncate(mappings, capacity, drop_order)
 
   -- If picker alone still overflows, clip it and report how many we hid
   local kept = {}
-  for _, origin in ipairs({ "picker", "user_global", "default" }) do
+  for _, origin in ipairs { "picker", "user_global", "default" } do
     for _, m in ipairs(by_origin[origin] or {}) do
       table.insert(kept, m)
     end

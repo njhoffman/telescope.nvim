@@ -11,16 +11,16 @@
 --     (Lua patterns)
 
 local api = vim.api
-local popup = require("plenary.popup")
+local popup = require "plenary.popup"
 
-local action_state = require("telescope.actions.state")
-local config = require("telescope.config")
-local utils = require("telescope.utils")
+local action_state = require "telescope.actions.state"
+local config = require "telescope.config"
+local utils = require "telescope.utils"
 
-local display_mod = require("telescope.actions._which_key.display")
-local hl_mod = require("telescope.actions._which_key.highlights")
-local layout_mod = require("telescope.actions._which_key.layout")
-local mappings_mod = require("telescope.actions._which_key.mappings")
+local display_mod = require "telescope.actions._which_key.display"
+local hl_mod = require "telescope.actions._which_key.highlights"
+local layout_mod = require "telescope.actions._which_key.layout"
+local mappings_mod = require "telescope.actions._which_key.mappings"
 
 local M = {}
 
@@ -85,8 +85,7 @@ local function compute_placement(picker)
   local prompt_row = win_central_row(picker.prompt_win)
   local results_row = win_central_row(picker.results_win)
   local preview_row = picker.preview_win and win_central_row(picker.preview_win) or results_row
-  return prompt_row < 0.4 * vim.o.lines
-    or (prompt_row < 0.6 * vim.o.lines and results_row + preview_row < vim.o.lines)
+  return prompt_row < 0.4 * vim.o.lines or (prompt_row < 0.6 * vim.o.lines and results_row + preview_row < vim.o.lines)
 end
 
 local function register_close_hooks(state, opts, prompt_bufnr)
@@ -238,7 +237,7 @@ function M.run(prompt_bufnr, opts)
   api.nvim_buf_set_lines(km_buf, 0, -1, false, utils.repeated_table(winheight, column_indent))
 
   local make_display = display_mod.make_display(opts, hl_mod)
-  local ns = api.nvim_create_namespace("telescope_whichkey")
+  local ns = api.nvim_create_namespace "telescope_whichkey"
   local highlights = {}
 
   for index, mapping in ipairs(mappings) do
@@ -265,13 +264,7 @@ function M.run(prompt_bufnr, opts)
 
   for _, h in ipairs(highlights) do
     for _, hl_block in ipairs(h.hl) do
-      utils.hl_range(
-        km_buf,
-        ns,
-        hl_block[2],
-        { h.row, h.col + hl_block[1][1] },
-        { h.row, h.col + hl_block[1][2] }
-      )
+      utils.hl_range(km_buf, ns, hl_block[2], { h.row, h.col + hl_block[1][1] }, { h.row, h.col + hl_block[1][2] })
     end
   end
 

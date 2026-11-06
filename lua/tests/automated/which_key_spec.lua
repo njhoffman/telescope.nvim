@@ -8,39 +8,39 @@ local same = assert.are.same
 describe("actions._which_key", function()
   describe("description parsing", function()
     it("parses legacy telescope| prefix with no origin", function()
-      local body, origin, is_json = action_utils._parse_telescope_desc("telescope|select_default")
+      local body, origin, is_json = action_utils._parse_telescope_desc "telescope|select_default"
       eq("select_default", body)
       eq(nil, origin)
       eq(false, is_json)
     end)
 
     it("parses origin-tagged telescope:picker| prefix", function()
-      local body, origin = action_utils._parse_telescope_desc("telescope:picker|my_action")
+      local body, origin = action_utils._parse_telescope_desc "telescope:picker|my_action"
       eq("my_action", body)
       eq("picker", origin)
     end)
 
     it("parses origin-tagged telescope:user_global| prefix", function()
-      local body, origin = action_utils._parse_telescope_desc("telescope:user_global|open_in_split")
+      local body, origin = action_utils._parse_telescope_desc "telescope:user_global|open_in_split"
       eq("open_in_split", body)
       eq("user_global", origin)
     end)
 
     it("parses origin-tagged telescope:default| prefix", function()
-      local body, origin = action_utils._parse_telescope_desc("telescope:default|close")
+      local body, origin = action_utils._parse_telescope_desc "telescope:default|close"
       eq("close", body)
       eq("default", origin)
     end)
 
     it("parses origin-tagged telescopej:picker| json prefix", function()
-      local body, origin, is_json = action_utils._parse_telescope_desc('telescopej:picker|{"source":"x"}')
+      local body, origin, is_json = action_utils._parse_telescope_desc 'telescopej:picker|{"source":"x"}'
       eq('{"source":"x"}', body)
       eq("picker", origin)
       eq(true, is_json)
     end)
 
     it("returns nil for non-telescope descriptions", function()
-      local body = action_utils._parse_telescope_desc("some random desc")
+      local body = action_utils._parse_telescope_desc "some random desc"
       eq(nil, body)
     end)
 

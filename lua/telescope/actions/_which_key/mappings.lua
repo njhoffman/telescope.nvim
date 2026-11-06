@@ -1,5 +1,5 @@
-local action_utils = require("telescope.actions.utils")
-local utils = require("telescope.utils")
+local action_utils = require "telescope.actions.utils"
+local utils = require "telescope.utils"
 
 local M = {}
 

@@ -54,7 +54,7 @@ TODO/FIXME/HACK comments in `lua/` are upstream's and are not tracked here.
       `config.lua`, `finders/async_job_finder.lua`, `finders/async_oneshot_finder.lua`, `make_entry.lua`, `pickers.lua`,
       `pickers/layout_strategies.lua`, `scripts/minimal_init.vim`. Regenerate the doc rather than resolving its 18 hunks.
       Do the formatting item below first.
-- [ ] **Restore upstream formatting before merging.** (p2) [refactor] Style churn adds conflicts and hides the fork's real changes.
+- [x] **Restore upstream formatting before merging.** (p2) [refactor] Style churn adds conflicts and hides the fork's real changes.
       `.stylua.toml` sets `call_parentheses = "Always"` (upstream `"None"`), and parts of `layout_strategies.lua` wrap near
       100 columns against a configured 120. Measured in a scratch clone with all three sides normalized to upstream's
       config: code conflict hunks drop from 23 to 12, files from 11 to 9, `layout_strategies.lua` from 10 hunks to 1.
