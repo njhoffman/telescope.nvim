@@ -7,6 +7,15 @@ fork release, so see upstream for earlier history.
 
 ## [Unreleased]
 
+## [0.7.5] - 2026-11-05
+
+### Fixed
+
+- Picker timers are closed when a picker closes, and smooth scrolling reuses one timer per picker
+  instead of leaking a timer for each key press.
+- Oneshot finder yields once per 1000 entries as intended, and whenever a pipe read needs to return
+  to the main loop, instead of on every line.
+
 ## [0.7.4] - 2026-11-05
 
 ### Fixed

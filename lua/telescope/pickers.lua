@@ -1832,7 +1832,10 @@ function Picker:_detach()
   self.finder:close()
 
   for _, timer in ipairs(self.timers) do
-    timer:stop()
+    if not timer:is_closing() then
+      timer:stop()
+      timer:close()
+    end
   end
 
   -- TODO: Can we add a "cleanup" / "teardown" function that completely removes these.

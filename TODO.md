@@ -27,7 +27,7 @@ TODO/FIXME/HACK comments in `lua/` are upstream's and are not tracked here.
       `git_files({ cwd = "~/other" })` gets the buffer's repo root, gitdir and work tree; `use_file_path` is skipped too.
       Fixed for explicit `cwd` only: gitsigns reports the repo of the file itself, so `use_file_path` keeps using it,
       which also keeps bare-repo dotfiles working.
-- [ ] **Timers are stopped but never closed.** (p2) [bug] libuv handles leak for each picker and each smooth-scroll tap.
+- [x] **Timers are stopped but never closed.** (p2) [bug] libuv handles leak for each picker and each smooth-scroll tap.
       `Picker:_detach` (`lua/telescope/pickers.lua:1831`) only stops `self.timers`, though `debounce.lua` says the caller
       must close them. `__smoothscroll_previewer` (`lua/telescope/actions/set.lua:336`) allocates a timer per tap and
       appends it to `picker.timers`. Found by reading the code. Fix: close with an `is_closing` guard, and reuse one
@@ -85,10 +85,11 @@ TODO/FIXME/HACK comments in `lua/` are upstream's and are not tracked here.
 - [x] **Adopt upstream's new options.** (p3) [feature] Arrive with the merge; document any that overlap fork features.
       `48d2656` show_line for live_grep and grep_string; `796ee6e` hidden-file toggle for grep pickers; `43ba8c2` buffers
       `disable_coordinates`; `028d9a0` workspace/diagnostic option.
-- [ ] **Finish upstream's oneshot yield fix.** (p2) [perf] `40aedd8` fixed only the replay loop; the job read loop still yields on every line.
-      `lua/telescope/finders/async_oneshot_finder.lua:122` has `if num_results % await_count then`, always true in Lua since
-      0 is truthy, and upstream's copy has the same line. Fix with `== 0`, measure with `enable_timing`, and consider
-      sending the fix upstream.
+- [x] **Finish upstream's oneshot yield fix.** (p2) [perf] `40aedd8` fixed only the replay loop; the job read loop still yielded on every line.
+      Fixed with `vim.in_fast_event() or num_results % await_count == 0`. A plain `== 0` is wrong: after a pipe read the
+      loop resumes in a fast event, and entry makers calling the API fail with E5560. Yields drop from 200000 to 224 for
+      200k lines, but a real picker shows no measurable change in load time or longest stall (about 1s and 100ms either
+      way). Upstream's copy has the same line, so this could be offered upstream as a correctness cleanup.
 - [ ] **Avoid tag collisions with upstream.** (p3) [chore] Fork tags v0.3.0 to v0.4.0 use the same scheme as upstream, whose latest is v0.2.2.
       An upstream v0.3.0 would collide on fetch. Options: a fork suffix or prefix, or `--no-tags` on the upstream remote.
 

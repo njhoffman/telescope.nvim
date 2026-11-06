@@ -309,12 +309,13 @@ local __smoothscroll_previewer = function(prompt_bufnr, lines, opts)
     return
   end
 
-  -- Cancel any in-flight smooth scroll on this picker so repeated taps restart
-  -- cleanly instead of stacking up timers.
+  -- Cancel any in-flight smooth scroll on this picker so repeated taps restart cleanly. The
+  -- generation also invalidates a tick that was already scheduled when the timer stopped.
   if picker._smooth_scroll_timer then
     picker._smooth_scroll_timer:stop()
-    picker._smooth_scroll_timer = nil
   end
+  picker._smooth_scroll_generation = (picker._smooth_scroll_generation or 0) + 1
+  local generation = picker._smooth_scroll_generation
 
   local total = math.floor(lines)
   local abs_total = math.abs(total)
@@ -329,24 +330,26 @@ local __smoothscroll_previewer = function(prompt_bufnr, lines, opts)
   local base = math.floor(abs_total / step_count)
   local remainder = abs_total - base * step_count
 
-  local timer = vim.uv.new_timer()
-  picker._smooth_scroll_timer = timer
-  table.insert(picker.timers, timer)
+  local timer = picker._smooth_scroll_timer
+  if not timer then
+    -- One timer per picker, closed with the others in Picker:_detach.
+    timer = vim.uv.new_timer()
+    picker._smooth_scroll_timer = timer
+    table.insert(picker.timers, timer)
+  end
   local step = 0
 
   timer:start(
     0,
     interval,
     vim.schedule_wrap(function()
-      if picker._smooth_scroll_timer ~= timer or picker.closed then
-        timer:stop()
+      if picker.closed or picker._smooth_scroll_generation ~= generation then
         return
       end
       local cur_status = state.get_status(prompt_bufnr)
       local pw = cur_status.layout and cur_status.layout.preview and cur_status.layout.preview.winid
       if not pw or not api.nvim_win_is_valid(pw) then
         timer:stop()
-        picker._smooth_scroll_timer = nil
         return
       end
       step = step + 1
@@ -356,7 +359,6 @@ local __smoothscroll_previewer = function(prompt_bufnr, lines, opts)
       end
       if step >= step_count then
         timer:stop()
-        picker._smooth_scroll_timer = nil
       end
     end)
   )

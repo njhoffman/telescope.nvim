@@ -119,7 +119,8 @@ return function(opts)
             log.debug(string.format(" - First entry: %5.2fms", time_to_first))
           end
 
-          if num_results % await_count then
+          -- A pipe read resumes here in a fast event, where entry makers can't use the API.
+          if vim.in_fast_event() or num_results % await_count == 0 then
             async.util.scheduler()
           end
 
