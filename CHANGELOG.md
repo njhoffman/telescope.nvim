@@ -7,6 +7,12 @@ fork release, so see upstream for earlier history.
 
 ## [Unreleased]
 
+## [0.9.2] - 2026-11-05
+
+### Fixed
+
+- README states the tested minimum, Neovim v0.11.0.
+
 ## [0.9.1] - 2026-11-05
 
 ### Added

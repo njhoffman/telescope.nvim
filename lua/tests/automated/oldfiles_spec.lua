@@ -52,7 +52,7 @@ describe("builtin.oldfiles", function()
     internal.oldfiles { include_current_session = false }
     vim.v.oldfiles = old_oldfiles
     vim.fn.delete(real)
-    assert.are.same({ real }, results)
+    assert.are.same({ utils.iswin and real:gsub("/", "\\") or real }, results)
   end)
 
   it("does not convert the slashes of a protocol path on Windows", function()

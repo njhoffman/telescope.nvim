@@ -67,7 +67,7 @@ This section should guide you to run your first builtin pickers.
 
 ### Requirements
 
-* [Neovim >=v0.11.7](https://github.com/neovim/neovim/releases/tag/v0.11.6) built **with LuaJIT** (check `:version`).
+* [Neovim >=v0.11.0](https://github.com/neovim/neovim/releases/tag/v0.11.0) built **with LuaJIT** (check `:version`).
 * [nvim-lua/plenary.nvim](https://github.com/nvim-lua/plenary.nvim).
 
 >[!IMPORTANT]

@@ -107,8 +107,8 @@ describe("telescope", function()
           end)
         end
 
-        local multi_match = score("generics", "exercises/generics/generics2.rs")
-        local one_match = score("generics", "exercises/generics/README.md")
+        local multi_match = score("generics", new_path "exercises/generics/generics2.rs")
+        local one_match = score("generics", new_path "exercises/generics/README.md")
 
         assert(multi_match < one_match)
       end)

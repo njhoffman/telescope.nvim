@@ -42,7 +42,7 @@ inherited TODO/FIXME/HACK comments in `lua/` are upstream's and are not tracked 
 - [x] **Add specs for the remaining fork options.** (p3) [test] Grep of `lua/tests` finds no coverage for them.
       Missing: `scroll_previewer_by` and `scroll_previewer_page` without animation, and the center layout's `results_height`,
       including a value larger than the available height. Oldfiles has no specs either, which matters for the Windows bug.
-- [ ] **Test the minimum Neovim version.** (p3) [test] The CI matrix runs only stable and nightly, while `plugin/telescope.lua` accepts any 0.11.
+- [x] **Test the minimum Neovim version.** (p3) [test] The CI matrix runs only stable and nightly, while `plugin/telescope.lua` accepts any 0.11.
       Nothing checks the floor once stable moves past it. The README says `>=v0.11.7` and links to v0.11.6, which is inherited.
       Fix: add a pinned 0.11 to `ci.yml` and make the README and the check agree.
 - [x] **Check docs on push.** (p3) [chore] `docgen.yml` runs only on pull requests, and this fork pushes straight to master.
