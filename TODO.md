@@ -11,9 +11,9 @@ inherited TODO/FIXME/HACK comments in `lua/` are upstream's and are not tracked 
       `async_oneshot_finder.lua` upstream has `if num_results % await_count then`. The fix here needs `vim.in_fast_event()`
       too, and the description should say it is a correctness cleanup with no measurable speedup in a real picker. Opening a
       PR is public, so it is your call.
-- [ ] **Watch open upstream PRs.** (p3) [chore] Upstream has no new commits since `40aedd8`. Diffs of these six were read on 2026-11-05; none applied.
-      Worth taking if upstream stalls: #3691 (one line, nil entry guard in `get_substr_matcher`) and #3690 (selection caret
-      and `<CR>` while results stream; add its throttle timer to `self.timers`, which the PR doesn't do, or it leaks).
+- [ ] **Watch open upstream PRs.** (p3) [chore] Upstream has no new commits since `40aedd8`. Diffs were read on 2026-11-05.
+      Taken: #3691, and #3690 with changes (timer closed with the picker, a selection the user moved is left alone, optional
+      argument). Dropping these when upstream merges them may need a small conflict resolution in `pickers.lua`.
       Only if hit: #3686 (prefilter tags with whitespace), #3697 (previews for custom URI schemes).
       Skip: #3682 (replaces `fnameescape` with `bufadd`, wraps edits in `pcall` that hides errors, its author asks for careful
       review) and #3694 (`get_ref` increments the counter, which looks like a bug).

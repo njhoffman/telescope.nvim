@@ -7,6 +7,15 @@ fork release, so see upstream for earlier history.
 
 ## [Unreleased]
 
+## [0.10.1] - 2026-11-05
+
+### Fixed
+
+- The selection and caret appear while results are still streaming, so `<CR>` works during a long search instead of only
+  after it finishes. Moving the selection during a search keeps it there until the search finishes. From upstream PR
+  #3690, with changes.
+- `get_substr_matcher` no longer errors on a nil entry. From upstream PR #3691.
+
 ## [0.10.0] - 2026-11-05
 
 ### Removed

@@ -705,6 +705,23 @@ function Picker:find()
   local debounced_status, timer = debounce.throttle_leading(status_updater, 50)
   table.insert(self.timers, timer)
 
+  -- Keep a selection (and its caret) live while results are still streaming in,
+  -- so <CR> selects the current best result before the finder finishes.
+  -- Throttled so we don't redraw the caret and previewer on every incoming entry.
+  local streamed_row
+  local debounced_selection, selection_timer = debounce.throttle_leading(function()
+    if self.closed or self:is_done() then
+      return
+    end
+    -- A different row than the last one set here means the user moved: leave it alone.
+    if streamed_row and self._selection_row ~= streamed_row then
+      return
+    end
+    self:_do_selection(self:_get_prompt() or "")
+    streamed_row = self._selection_row
+  end, 50)
+  table.insert(self.timers, selection_timer)
+
   local tx, rx = channel.mpsc()
   self._on_lines = tx.send
 
@@ -796,9 +813,10 @@ function Picker:find()
       if self.cache_picker == false or self.cache_picker.is_cached ~= true then
         self.sorter:_start(prompt)
         self.manager = EntryManager:new(self.max_results, self.entry_adder, self.stats)
+        streamed_row = nil
 
         self:_reset_highlights()
-        local process_result = self:get_result_processor(find_id, prompt, debounced_status)
+        local process_result = self:get_result_processor(find_id, prompt, debounced_status, debounced_selection)
         local process_complete = self:get_result_completor(self.results_bufnr, find_id, prompt, status_updater)
 
         local ok, msg = pcall(function()
@@ -1546,8 +1564,9 @@ end
 ---@param find_id number
 ---@param prompt string
 ---@param status_updater function
+---@param update_selection function?: throttled callback that redraws the selection while results stream
 ---@return function
-function Picker:get_result_processor(find_id, prompt, status_updater)
+function Picker:get_result_processor(find_id, prompt, status_updater, update_selection)
   local count = 0
   local first_result_logged = false
   local enable_timing = utils.if_nil(self.enable_timing, false)
@@ -1557,6 +1576,10 @@ function Picker:get_result_processor(find_id, prompt, status_updater)
     -- may need the prompt for tiebreak
     self.manager:add_entry(self, score, entry, prompt)
     status_updater { completed = false }
+    -- draw/refresh the caret so a selection exists mid-search
+    if update_selection then
+      update_selection()
+    end
 
     -- Log first result displayed
     if enable_timing and not first_result_logged then

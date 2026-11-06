@@ -81,4 +81,11 @@ describe("get_substr_matcher", function()
       with_smartcase(true, case)
     end
   end)
+
+  describe("get_substr_matcher", function()
+    it("scores a nil entry without erroring", function()
+      local sorter = require("telescope.sorters").get_substr_matcher()
+      assert.are.equal(1, sorter:scoring_function("abc", nil, nil))
+    end)
+  end)
 end)
