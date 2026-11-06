@@ -63,12 +63,12 @@ end
 --- Minimal style theme.
 ---
 --- Usage:
---- <code>
----     local opts = {...} -- picker options
----     local builtin = require('telescope.builtin')
----     local themes = require('telescope.themes')
----     builtin.find_files(themes.get_minimal(opts))
---- </code>
+--- ```lua
+--- local opts = {...} -- picker options
+--- local builtin = require('telescope.builtin')
+--- local themes = require('telescope.themes')
+--- builtin.find_files(themes.get_minimal(opts))
+--- ```
 function themes.get_minimal(opts)
   opts = opts or {}
 

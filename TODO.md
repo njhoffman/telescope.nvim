@@ -54,7 +54,7 @@ TODO/FIXME/HACK comments in `lua/` are upstream's and are not tracked here.
 
 ## 2. Upstream sync
 
-- [ ] **Regenerate doc/telescope.txt after the merge.** (p1) [docs] The vimdoc lacks fork entries, and the "Check docs" workflow will fail until it is regenerated.
+- [x] **Regenerate doc/telescope.txt after the merge.** (p1) [docs] The vimdoc lacks fork entries, and the "Check docs" workflow will fail until it is regenerated.
       `make docgen` clones `jamestrew/docgen.nvim` v1.1.0 into `.deps` and runs it, which was blocked by a permission check
       during the merge, so the 19 doc conflicts took upstream's side. Missing: `get_minimal`, `scroll_previewer_by`,
       `smoothscroll_previewer_by`, `category_drop_order`, `results_height`. `gendocs.lua` expects plenary at

@@ -1679,6 +1679,16 @@ themes.get_dropdown()                        *telescope.themes.get_dropdown()*
     builtin.find_files(themes.get_dropdown(opts))
 <
 
+themes.get_minimal()                          *telescope.themes.get_minimal()*
+    Minimal style theme.
+
+    Usage: >lua
+    local opts = {...} -- picker options
+    local builtin = require('telescope.builtin')
+    local themes = require('telescope.themes')
+    builtin.find_files(themes.get_minimal(opts))
+<
+
 themes.get_cursor()                            *telescope.themes.get_cursor()*
     Cursor style theme.
 
@@ -2065,6 +2075,7 @@ layout_strategies.center                  *telescope.layout_strategies.center*
 
     `picker.layout_config` unique options:
       • preview_cutoff: When lines are less than this value, the preview will be disabled
+      • results_height: Optional height specifically for results window
 
 layout_strategies.cursor                  *telescope.layout_strategies.cursor*
     Cursor layout dynamically positioned below the cursor if possible. If
@@ -2573,6 +2584,64 @@ actions.preview_scrolling_down({prompt_bufnr})
     Parameters: ~
       • {prompt_bufnr}  (`number`) The prompt bufnr
 
+                               *telescope.actions.preview_scrolling_up_line()*
+actions.preview_scrolling_up_line({prompt_bufnr})
+    Scroll the preview window up by one line
+
+    Parameters: ~
+      • {prompt_bufnr}  (`number`) The prompt bufnr
+
+                             *telescope.actions.preview_scrolling_down_line()*
+actions.preview_scrolling_down_line({prompt_bufnr})
+    Scroll the preview window down by one line
+
+    Parameters: ~
+      • {prompt_bufnr}  (`number`) The prompt bufnr
+
+                               *telescope.actions.preview_scrolling_page_up()*
+actions.preview_scrolling_page_up({prompt_bufnr})
+    Scroll the preview window up by one full page (preview window height)
+
+    Parameters: ~
+      • {prompt_bufnr}  (`number`) The prompt bufnr
+
+                             *telescope.actions.preview_scrolling_page_down()*
+actions.preview_scrolling_page_down({prompt_bufnr})
+    Scroll the preview window down by one full page (preview window height)
+
+    Parameters: ~
+      • {prompt_bufnr}  (`number`) The prompt bufnr
+
+                         *telescope.actions.preview_smoothscrolling_up_line()*
+actions.preview_smoothscrolling_up_line({prompt_bufnr})
+    Smoothly scroll the preview window up by one line
+
+    Parameters: ~
+      • {prompt_bufnr}  (`number`) The prompt bufnr
+
+                       *telescope.actions.preview_smoothscrolling_down_line()*
+actions.preview_smoothscrolling_down_line({prompt_bufnr})
+    Smoothly scroll the preview window down by one line
+
+    Parameters: ~
+      • {prompt_bufnr}  (`number`) The prompt bufnr
+
+                         *telescope.actions.preview_smoothscrolling_page_up()*
+actions.preview_smoothscrolling_page_up({prompt_bufnr})
+    Smoothly scroll the preview window up by one full page (preview window
+    height)
+
+    Parameters: ~
+      • {prompt_bufnr}  (`number`) The prompt bufnr
+
+                       *telescope.actions.preview_smoothscrolling_page_down()*
+actions.preview_smoothscrolling_page_down({prompt_bufnr})
+    Smoothly scroll the preview window down by one full page (preview window
+    height)
+
+    Parameters: ~
+      • {prompt_bufnr}  (`number`) The prompt bufnr
+
                                   *telescope.actions.preview_scrolling_left()*
 actions.preview_scrolling_left({prompt_bufnr})
     Scroll the preview window to the left
@@ -3039,6 +3108,13 @@ actions.which_key({prompt_bufnr})              *telescope.actions.which_key()*
 
     Note: ~
       • The defaults can be overridden via |action_generate.which_key|.
+      • Mappings are categorized by origin (`default`, `user_global`, `picker`) with
+        distinct highlights. On overflow, lower-priority categories are
+        dropped first (see `category_drop_order`).
+      • Key codes can be substituted for display via `key_labels` (exact match) and
+        `replace_keys` (Lua-pattern pairs).
+      • The popup re-aligns on `VimResized` by default; set `resize = false` to
+        disable.
 
     Parameters: ~
       • {prompt_bufnr}  (`number`) The prompt bufnr
@@ -3138,6 +3214,53 @@ actions_set.shift_selection({prompt_bufnr}, {change})
     Parameters: ~
       • {prompt_bufnr}  (`number`) The prompt bufnr
       • {change}        (`number`) The amount to shift the selection by
+
+                                 *telescope.actions_set.scroll_previewer_by()*
+actions_set.scroll_previewer_by({prompt_bufnr}, {lines})
+    Scrolls the previewer by an explicit number of lines, ignoring
+    `scroll_speed`. Negative values scroll up, positive values scroll down.
+
+    Parameters: ~
+      • {prompt_bufnr}  (`number`) The prompt bufnr
+      • {lines}         (`number`) Signed number of lines to scroll
+
+                               *telescope.actions_set.scroll_previewer_page()*
+actions_set.scroll_previewer_page({prompt_bufnr}, {direction})
+    Scrolls the previewer by one full window-height page. Negative direction
+    scrolls up, positive scrolls down.
+
+    Parameters: ~
+      • {prompt_bufnr}  (`number`) The prompt bufnr
+      • {direction}     (`number`) Valid directions: -1 (page up), 1 (page
+                        down)
+
+                           *telescope.actions_set.smoothscroll_previewer_by()*
+actions_set.smoothscroll_previewer_by({prompt_bufnr}, {lines}, {opts})
+    Smoothly scrolls the previewer by an explicit number of lines over a short
+    animation instead of jumping in a single step. Negative values scroll up,
+    positive values scroll down. Calls while an animation is already running
+    cancel the prior animation and start fresh.
+
+    Parameters: ~
+      • {prompt_bufnr}  (`number`) The prompt bufnr
+      • {lines}         (`number`) Signed number of lines to scroll
+      • {opts}          (`table?`) Optional tuning:
+                        • interval_ms: ms between animation frames. Default:
+                          16
+                        • max_duration_ms: cap on total animation duration.
+                          Default: 150
+
+                         *telescope.actions_set.smoothscroll_previewer_page()*
+actions_set.smoothscroll_previewer_page({prompt_bufnr}, {direction}, {opts})
+    Smoothly scrolls the previewer by one full page (preview window height).
+    Negative direction scrolls up, positive scrolls down.
+
+    Parameters: ~
+      • {prompt_bufnr}  (`number`) The prompt bufnr
+      • {direction}     (`number`) Valid directions: -1 (page up), 1 (page
+                        down)
+      • {opts}          (`table?`) Optional tuning, see
+                        `smoothscroll_previewer_by`
 
 
 ==============================================================================
@@ -3268,7 +3391,8 @@ actions_utils.map_selections({prompt_bufnr}, {f})
                            *telescope.actions_utils.get_registered_mappings()*
 actions_utils.get_registered_mappings({prompt_bufnr})
     Utility to collect mappings of prompt buffer in array of
-    `{mode, keybind, name}`.
+    `{mode, keybind, desc, origin}`. `origin` is one of "default" |
+    "user_global" | "picker" | nil (for legacy/unset).
 
     Parameters: ~
       • {prompt_bufnr}  (`number`) The prompt bufnr

@@ -7,6 +7,13 @@ fork release, so see upstream for earlier history.
 
 ## [Unreleased]
 
+## [0.7.2] - 2026-11-05
+
+### Fixed
+
+- `doc/telescope.txt` regenerated with upstream's docgen, restoring the fork's entries such as
+  `themes.get_minimal`, the previewer scroll actions and the which_key options.
+
 ## [0.7.1] - 2026-11-05
 
 ### Removed
