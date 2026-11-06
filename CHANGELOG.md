@@ -7,6 +7,33 @@ fork release, so see upstream for earlier history.
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-11-05
+
+Merged upstream telescope.nvim through `40aedd8`.
+
+### Added
+
+- `show_line` option for `live_grep` and `grep_string`.
+- Hidden-file toggle for `live_grep` and `grep_string`.
+- `disable_coordinates` option for `buffers`.
+- Option to use workspace/diagnostic in the diagnostics picker.
+
+### Changed
+
+- **Breaking:** `lua/telescope/_.lua` is now `telescope.async_job`, so `require("telescope._")` no longer works.
+- **Breaking:** `lsp_dynamic_workspace_symbols` uses the generic sorter.
+- `doc/telescope.txt` uses upstream's new format and is missing some fork entries until it is regenerated.
+
+### Fixed
+
+- `grep_string` escapes `|` in the pattern.
+- Tags entries show their fields in the right order.
+- Quickfix actions default to the current list instead of the last one.
+- Diagnostic entries keep their `code` field.
+- Previewer line splitting, timeouts and trailing blank line.
+- No folding in the results window.
+- Oneshot finder no longer yields on every entry when replaying results.
+
 ## [0.6.0] - 2026-11-05
 
 ### Changed

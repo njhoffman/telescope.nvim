@@ -19,7 +19,7 @@ TODO/FIXME/HACK comments in `lua/` are upstream's and are not tracked here.
       is ignored (returned 2 of 2 diagnostics, 1 expected), which covers `severity_limit` and `severity_bound`.
       Fix: pass `diagnosis_opts` and drop the NOTE comment; add a spec.
 - [ ] **Final line without a newline keeps a literal newline.** (p2) [bug] `LinesPipe:iter` returns `"b\n"` for the last line.
-      `lua/telescope/_.lua:166` appends `"\n"` and the is-done branch returns it as is. Reproduced with
+      `lua/telescope/async_job.lua:166` appends `"\n"` and the is-done branch returns it as is. Reproduced with
       `new_oneshot_job({ "printf", "a\\nb" })`, which yields `{ "a", "b\n" }`. Also wrong for NUL-split output.
       Fix: return `previous` unchanged. `elseif next_value ~= nil` at line 197 is always true, so its `else` is dead code.
 - [ ] **Gitsigns detection overrides an explicit cwd.** (p2) [bug] Git pickers follow the current buffer's repo even when told otherwise.
@@ -54,7 +54,13 @@ TODO/FIXME/HACK comments in `lua/` are upstream's and are not tracked here.
 
 ## 2. Upstream sync
 
-- [ ] **Merge the 29 upstream commits.** (p1) [chore] The last upstream merge was March 2026 and a dry run conflicts in 11 files.
+- [ ] **Regenerate doc/telescope.txt after the merge.** (p1) [docs] The vimdoc lacks fork entries, and the "Check docs" workflow will fail until it is regenerated.
+      `make docgen` clones `jamestrew/docgen.nvim` v1.1.0 into `.deps` and runs it, which was blocked by a permission check
+      during the merge, so the 19 doc conflicts took upstream's side. Missing: `get_minimal`, `scroll_previewer_by`,
+      `smoothscroll_previewer_by`, `category_drop_order`, `results_height`. `gendocs.lua` expects plenary at
+      `../plenary.nvim`. Fork comments such as `get_minimal` may need upstream's annotation style.
+
+- [x] **Merge the 29 upstream commits.** (p1) [chore] The last upstream merge was March 2026 and a dry run conflicts in 11 files.
       `git merge-tree` conflicts: `doc/telescope.txt`, `actions/generate.lua`, `actions/init.lua`, `builtin/__git.lua`,
       `config.lua`, `finders/async_job_finder.lua`, `finders/async_oneshot_finder.lua`, `make_entry.lua`, `pickers.lua`,
       `pickers/layout_strategies.lua`, `scripts/minimal_init.vim`. Regenerate the doc rather than resolving its 18 hunks.
@@ -66,22 +72,22 @@ TODO/FIXME/HACK comments in `lua/` are upstream's and are not tracked here.
 - [x] **Decide on upstream's Neovim 0.11 minimum.** (p2) [chore] `e6cdb4d` requires 0.11 and drops the compat shims; the fork declares 0.10.4.
       Adopting it removes `utils.nvim011` and the shims in `utils.lua`, `debounce.lua` and `__lsp.lua`. Touches
       `plugin/telescope.lua`, the README and the CI matrix. Local nvim is 0.13-dev, so adopting looks low risk here.
-- [ ] **Plan for breaking upstream changes.** (p2) [refactor] Several need follow-up beyond conflict resolution.
+- [x] **Plan for breaking upstream changes.** (p2) [refactor] Several need follow-up beyond conflict resolution.
       `f7c673b` renames `lua/telescope/_.lua` to `async_job.lua`, which holds the fork's `LinesPipe` change and is required
       by both finders. `aa4ad82` stubs `vim.F` across 22 files, and fork-only modules (`actions/_which_key/`, finders) need
       the same treatment. `d49d056`, `cb1a129` and `3ab376c` replace the docgen tool used by `scripts/gendocs.lua`.
       `8eb2d60` switches `dynamic_workspace_symbols` to `generic_sorter`.
-- [ ] **Take upstream's fixes.** (p2) [bug] Worth cherry-picking if the full merge is delayed.
+- [x] **Take upstream's fixes.** (p2) [bug] Worth cherry-picking if the full merge is delayed.
       `073c000` grep_string `|` escaping; `a8bc00e` tags entry order; `e3f333b` quickfix list nr; `9377230` diagnostic code
       field (with spec); `be6a84e`, `f04ab73`, `5063384` previewer line splitting, timeouts and trailing blank line;
       `62cc799` no folding in TelescopeResults.
-- [ ] **Adopt upstream's new options.** (p3) [feature] Arrive with the merge; document any that overlap fork features.
+- [x] **Adopt upstream's new options.** (p3) [feature] Arrive with the merge; document any that overlap fork features.
       `48d2656` show_line for live_grep and grep_string; `796ee6e` hidden-file toggle for grep pickers; `43ba8c2` buffers
       `disable_coordinates`; `028d9a0` workspace/diagnostic option.
 - [ ] **Finish upstream's oneshot yield fix.** (p2) [perf] `40aedd8` fixed only the replay loop; the job read loop still yields on every line.
       `lua/telescope/finders/async_oneshot_finder.lua:122` has `if num_results % await_count then`, always true in Lua since
-      0 is truthy, and upstream's copy has the same line. Line 150 is the replay loop `40aedd8` fixes. Fix both with
-      `== 0`, measure with `enable_timing`, and consider sending the line 122 fix upstream.
+      0 is truthy, and upstream's copy has the same line. Fix with `== 0`, measure with `enable_timing`, and consider
+      sending the fix upstream.
 - [ ] **Avoid tag collisions with upstream.** (p3) [chore] Fork tags v0.3.0 to v0.4.0 use the same scheme as upstream, whose latest is v0.2.2.
       An upstream v0.3.0 would collide on fetch. Options: a fork suffix or prefix, or `--no-tags` on the upstream remote.
 
@@ -97,15 +103,14 @@ TODO/FIXME/HACK comments in `lua/` are upstream's and are not tracked here.
       `~/.config/nvim/lua`, which hid the close bug locally. Runs print sidebar errors and `Bad config file`. Fix: remove
       the config and data dirs from `rtp` in `minimal_init.vim`, or set `XDG_CONFIG_HOME` in the Makefile.
 - [ ] **CI is red on master.** (p2) [chore] The latest runs (2026-10-20) fail on every leg of Tests and on both lint jobs.
-      Tests fails at "Run tests" on all 9 OS/version legs; the logs did not yield a cause, and the gitops specs are the
-      likely one. Luacheck reports 8 W631 long lines (`actions/generate.lua`, `actions/_which_key/highlights.lua`) and
-      `stylua --check lua` fails on 65 of 80 files. Fix the specs, wrap the lines, and resolve the formatting item in
-      project 2.
+      Tests failed at "Run tests" on all 9 OS/version legs; the logs did not yield a cause, and the since-moved gitops
+      specs are the likely one, so recheck after the next push. Stylua is now clean. Luacheck still reports 6 W631 long
+      lines in `actions/generate.lua`; wrap them or exempt `---@field` lines in `.luacheckrc`.
 - [ ] **No specs for most fork features.** (p2) [test] Grep of `lua/tests` finds no coverage for them.
       Missing: `scroll_previewer_by`, `scroll_previewer_page`, smooth scrolling, `preview.debounce`, `enable_timing`,
       `strip_path_prefix`, `themes.get_minimal`, `LinesPipe` flushing, gitsigns detection. Start with the bugs in project 1,
       each of which should get a regression spec.
-- [ ] **Docgen workflow pins an unsupported Neovim.** (p2) [chore] `docgen.yml` installs 0.9.5, but `plugin/telescope.lua` requires 0.10.4.
+- [x] **Docgen workflow pins an unsupported Neovim.** (p2) [chore] `docgen.yml` installs 0.9.5, but `plugin/telescope.lua` requires 0.10.4.
       Replace it with upstream's simplified workflow as part of the merge, or update the pin.
 - [ ] **Release workflow runs on every fork tag.** (p3) [chore] `release.yml` uploads to LuaRocks on any tag push.
       This fork should not publish under upstream's rock. Remove it, or limit it to `workflow_dispatch`.

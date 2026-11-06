@@ -1,9 +1,10 @@
-local async_job = require "telescope._"
-local LinesPipe = require("telescope._").LinesPipe
+local async_job = require "telescope.async_job"
+local LinesPipe = async_job.LinesPipe
 
 local make_entry = require "telescope.make_entry"
 local config = require "telescope.config"
 local log = require "telescope.log"
+local utils = require "telescope.utils"
 
 local function format_command(command, args)
   local cmd_str = command
@@ -37,7 +38,7 @@ return function(opts)
   local entry_maker = opts.entry_maker or make_entry.gen_from_string(opts)
 
   -- Enable timing diagnostics if requested
-  local enable_timing = vim.F.if_nil(opts.enable_timing, config.values.enable_timing)
+  local enable_timing = utils.if_nil(opts.enable_timing, config.values.enable_timing)
 
   local fn_command = function(prompt)
     local command_list = opts.command_generator(prompt)
