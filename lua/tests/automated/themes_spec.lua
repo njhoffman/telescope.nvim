@@ -2,6 +2,7 @@ local actions = require "telescope.actions"
 local conf = require("telescope.config").values
 local finders = require "telescope.finders"
 local pickers = require "telescope.pickers"
+local previewers = require "telescope.previewers"
 local themes = require "telescope.themes"
 
 describe("themes.get_minimal", function()
@@ -45,13 +46,20 @@ describe("themes.get_minimal", function()
       vim.o.lines, vim.o.columns = old_lines, old_columns
     end)
 
-    local function open(prompt_position)
-      local picker =
-        pickers.new(themes.get_minimal { previewer = false, layout_config = { prompt_position = prompt_position } }, {
+    local function open(prompt_position, strategy)
+      local picker = pickers.new(
+        themes.get_minimal {
+          previewer = strategy == "vertical" and previewers.new_buffer_previewer { define_preview = function() end }
+            or false,
+          layout_strategy = strategy,
+          layout_config = { prompt_position = prompt_position },
+        },
+        {
           prompt_title = "minimal spec",
           finder = finders.new_table { results = { "a", "b" } },
           sorter = conf.generic_sorter {},
-        })
+        }
+      )
       picker:find()
       vim.wait(100)
       local prompt = vim.api.nvim_win_get_config(picker.prompt_win)
@@ -72,6 +80,30 @@ describe("themes.get_minimal", function()
 
       prompt, results = open "top"
       assert.is_true(results.zindex > prompt.zindex)
+    end)
+
+    it("shares borders and leaves room for results in the vertical layout", function()
+      local prompt, results = open("bottom", "vertical")
+      assert.is_true(prompt.zindex > results.zindex)
+      assert.are.equal(results.row + results.height + 1, prompt.row)
+      assert.is_true(results.height >= 5)
+
+      prompt, results = open("top", "vertical")
+      assert.is_true(results.zindex > prompt.zindex)
+      assert.are.equal(prompt.row + prompt.height + 1, results.row)
+      assert.is_true(results.height >= 5)
+    end)
+
+    it("respects an explicit mirror and height", function()
+      local opts = themes.get_minimal {
+        layout_strategy = "vertical",
+        layout_config = {
+          mirror = false,
+          height = 20,
+        },
+      }
+      assert.is_false(opts.layout_config.mirror)
+      assert.are.equal(20, opts.layout_config.height)
     end)
   end)
 end)

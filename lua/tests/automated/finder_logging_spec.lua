@@ -6,10 +6,10 @@ local log = require "telescope.log"
 local pickers = require "telescope.pickers"
 
 describe("finder logging", function()
-  local old_error, old_debug, logged
+  local old_error, old_timing_debug, logged
 
   before_each(function()
-    old_error, old_debug = log.error, log.debug
+    old_error, old_timing_debug = log.error, log.timing.debug
     logged = {}
     log.error = function(msg)
       table.insert(logged, msg)
@@ -17,7 +17,7 @@ describe("finder logging", function()
   end)
 
   after_each(function()
-    log.error, log.debug = old_error, old_debug
+    log.error, log.timing.debug = old_error, old_timing_debug
   end)
 
   local function run_failing_finder(failure)
@@ -50,7 +50,7 @@ describe("finder logging", function()
 
   it("new_job honors enable_timing", function()
     local messages = {}
-    log.debug = function(msg)
+    log.timing.debug = function(msg)
       table.insert(messages, msg)
     end
     local done = false

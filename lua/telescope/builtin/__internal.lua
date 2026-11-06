@@ -549,7 +549,7 @@ internal.oldfiles = function(opts)
   local results = {}
 
   local function has_protocol(path)
-    return string.match(path, "^[A-z0-9]+://")
+    return string.match(path, "^%a[%w+.-]*://")
   end
 
   if utils.iswin and not has_protocol(current_file) then -- for slash problem in windows
@@ -563,7 +563,7 @@ internal.oldfiles = function(opts)
       if match and not open_by_lsp then
         local file = api.nvim_buf_get_name(match)
         local protocol = has_protocol(file)
-        if utils.iswin then
+        if utils.iswin and not protocol then
           file = file:gsub("/", "\\")
         end
         if match ~= current_buffer and (protocol or vim.uv.fs_stat(file)) then

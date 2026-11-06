@@ -33,11 +33,11 @@ make lint
 
 ### Documentation Generation
 ```bash
-# Generate vim documentation from tree-sitter annotations
+# Generate vim documentation from the annotations in the source code
 make docgen
 
-# Runs: nvim --headless --noplugin -u scripts/minimal_init.vim -c "luafile ./scripts/gendocs.lua" -c 'qa'
-# Documentation is generated from tree-sitter-lua annotations in the source code
+# Clones docgen.nvim into .deps, then runs: nvim -l scripts/gendocs.lua
+# Needs plenary.nvim at ../plenary.nvim. CI checks on pull requests that the output is committed.
 ```
 
 ## Architecture
@@ -150,7 +150,7 @@ Extensions register themselves via `telescope.register_extension(module)`.
 
 ## Documentation Standards
 
-- Use tree-sitter-lua annotations for all public functions
+- Use `---@` annotations, read by docgen.nvim, for all public functions
 - Module exports (functions in returned table) are auto-documented
 - Private functions (prefixed with `__` or local) are not exported
 - See CONTRIBUTING.md for detailed documentation guide
@@ -196,16 +196,16 @@ Use "resolvable" sizes:
 ## Git Workflow
 
 - Main branch: `master`
-- Release branch: `0.1.x` (recommended for users)
-- Not recommended to run latest master in production
+- Releases of this fork are tagged `vX.Y.Z` on master, with the version in `VERSION`
+- The `upstream` remote has `--no-tags`, so upstream tags never collide with the fork's
 
 ## Contributing Notes
 
 From CONTRIBUTING.md:
 - **Not accepting new builtin pickers** - create extensions instead
 - Bug fixes, documentation improvements, and non-picker features welcome
-- Must use tree-sitter documentation annotations
-- CI auto-generates documentation on PRs
+- Must use documentation annotations
+- CI checks on PRs that generated documentation is up to date
 
 ## Testing Approach
 
@@ -224,6 +224,8 @@ From CONTRIBUTING.md:
 - Modifying window creation: `lua/telescope/pickers/window.lua`
 
 ## Custom Features in This Fork
+
+The README section "About This Fork" lists them all.
 
 ### Timing Diagnostics
 
@@ -247,11 +249,11 @@ require('telescope').setup({
 **Modified Files:**
 - `lua/telescope/finders/async_job_finder.lua` - Command execution timing
 - `lua/telescope/finders/async_oneshot_finder.lua` - Oneshot job timing
+- `lua/telescope/finders/timing.lua` - Log helpers shared by both finders
+- `lua/telescope/log.lua` - File-only `log.timing` logger
 - `lua/telescope/pickers.lua` - UI responsiveness metrics
 - `lua/telescope/config.lua` - Configuration option
 
-**Log Location:**
-- Linux/macOS: `~/.cache/nvim/telescope.log`
-- Windows: `~/AppData/Local/nvim-data/telescope.log`
+**Log Location:** `telescope.log` under `:echo stdpath("log")`
 
-Set log level: `require('telescope.log').level = 'info'`
+Detailed metrics: `require('telescope.log').timing.level = 'debug'`

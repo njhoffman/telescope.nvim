@@ -12,7 +12,7 @@ function M.setup()
   end
 
   -- Window chrome
-  sethl("TelescopeWhichKeyNormal", "TelescopePrompt")
+  sethl("TelescopeWhichKeyNormal", "TelescopePromptNormal")
   sethl("TelescopeWhichKeyBorder", "TelescopePromptBorder")
 
   -- Default category (legacy behavior): links to the historical groups
@@ -27,7 +27,7 @@ function M.setup()
 
   -- Picker-specific category: emphasized (keyword-bold)
   sethl("TelescopeWhichKeyPickerMode", "TelescopeResultsConstant")
-  sethl("TelescopeWhichKeyPickerBind", "TelescopeResultsKeyword")
+  sethl("TelescopeWhichKeyPickerBind", "Keyword")
   sethl("TelescopeWhichKeyPickerName", "TelescopeResultsTitle")
 end
 

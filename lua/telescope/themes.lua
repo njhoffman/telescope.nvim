@@ -107,6 +107,12 @@ function themes.get_minimal(opts)
   end
 
   if opts.layout_strategy and opts.layout_strategy == "vertical" then
+    -- The borders below stack prompt and results above the preview, and need room for all three.
+    theme_opts.layout_config.mirror = true
+    theme_opts.layout_config.height = function(_, _, max_lines)
+      return math.min(max_lines, 30)
+    end
+
     local top = { "─", "│", "x", "│", "╭", "╮", "│", "│" }
     local middle = { "─", "│", "─", "│", "├", "┤", "┴", "╰" }
     local bottom = { "─", "│", "─", "│", "├", "┤", "╯", "╰" }

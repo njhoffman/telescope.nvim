@@ -123,27 +123,31 @@ All timing metrics are written to the telescope log file. To view the log:
 
 ### Set Log Level
 
-Set the log level to see timing information:
+Summary metrics are logged at the default `info` level. For detailed metrics such as layout
+timings, time to first entry and full commands, set:
 
 ```lua
 -- In your telescope setup or init.lua
-require('telescope.log').level = 'info'  -- For summary metrics
--- or
-require('telescope.log').level = 'debug' -- For detailed metrics
+require('telescope.log').timing.level = 'debug'
 ```
+
+Timing output goes only to the log file, not to `:messages`. If a module earlier on the
+runtimepath replaces `telescope.log` and has no `timing` logger, timing output uses that module
+instead, along with its levels and output.
 
 ### View Log File
 
-The log file location depends on your system:
+The log is `telescope.log` in Neovim's log directory, which depends on your version and system.
+To find it:
 
-**Linux/macOS:**
-```bash
-tail -f ~/.cache/nvim/telescope.log
+```vim
+:echo stdpath("log")
 ```
 
-**Windows:**
-```powershell
-Get-Content -Wait ~/AppData/Local/nvim-data/telescope.log
+On Neovim 0.13-dev on Linux, for example, follow it with:
+
+```bash
+tail -f ~/.local/state/nvim/logs/telescope.log
 ```
 
 **From Neovim:**
@@ -234,6 +238,9 @@ The timing diagnostics feature modifies:
    - Same metrics for oneshot jobs
    - Tracks total completion time
 
+   Both report through **lua/telescope/finders/timing.lua**, and **lua/telescope/log.lua** provides
+   the file-only logger.
+
 3. **lua/telescope/pickers.lua**
    - Tracks UI creation phases
    - Measures time to interactivity
@@ -278,7 +285,7 @@ The timing feature has minimal overhead:
 
 ### No timing output in log
 
-1. Check log level: `require('telescope.log').level = 'info'`
+1. Check the log level: `require('telescope.log').timing.level = 'debug'` shows the most
 2. Verify timing is enabled in config
 3. Check log file path is correct
 4. Ensure picker/finder supports timing (command-based finders)

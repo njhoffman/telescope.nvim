@@ -30,6 +30,22 @@ describe("actions.which_key popup", function()
     end, vim.api.nvim_list_bufs())
   end
 
+  it("links its highlight groups to groups that exist", function()
+    actions.which_key(picker.prompt_bufnr)
+    local prefix = "TelescopeWhichKey"
+    local checked = 0
+    for name in pairs(vim.api.nvim_get_hl(0, {})) do
+      if name:sub(1, #prefix) == prefix then
+        local link = vim.api.nvim_get_hl(0, { name = name }).link
+        local target = vim.api.nvim_get_hl(0, { name = name, link = false })
+        assert.is_false(vim.tbl_isempty(target), name .. " links to an undefined group: " .. tostring(link))
+        checked = checked + 1
+      end
+    end
+    assert.is_true(checked >= 11)
+    actions.which_key(picker.prompt_bufnr)
+  end)
+
   it("shows the mappings that fit on a small screen", function()
     vim.o.lines, vim.o.columns = 24, 80
     actions.which_key(picker.prompt_bufnr)

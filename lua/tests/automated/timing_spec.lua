@@ -9,16 +9,16 @@ describe("timing diagnostics", function()
   local old_info, old_debug, messages
 
   before_each(function()
-    old_info, old_debug = log.info, log.debug
+    old_info, old_debug = log.timing.info, log.timing.debug
     messages = {}
     local capture = function(msg)
       table.insert(messages, msg)
     end
-    log.info, log.debug = capture, capture
+    log.timing.info, log.timing.debug = capture, capture
   end)
 
   after_each(function()
-    log.info, log.debug = old_info, old_debug
+    log.timing.info, log.timing.debug = old_info, old_debug
   end)
 
   local function logged(text)
@@ -68,6 +68,30 @@ describe("timing diagnostics", function()
     assert.is_true(logged "Job Finder:")
     assert.is_true(logged "Finder Performance:")
     assert.is_true(logged(("Entries: %d"):format(entries)))
+  end)
+
+  it("writes to the log file without echoing to :messages", function()
+    log.timing.info, log.timing.debug = old_info, old_debug
+    log.timing.info "timing-spec-marker"
+    vim.wait(50)
+    assert.is_nil(vim.fn.execute("messages"):find("timing-spec-marker", 1, true))
+  end)
+
+  it("falls back to telescope.log when it has no timing logger", function()
+    local real_log, real_timing = package.loaded["telescope.log"], package.loaded["telescope.finders.timing"]
+    local infos = {}
+    package.loaded["telescope.log"] = {
+      info = function(msg)
+        table.insert(infos, msg)
+      end,
+    }
+    package.loaded["telescope.finders.timing"] = nil
+    local ok, err = pcall(function()
+      require("telescope.finders.timing").log_stats("Spec", { command = "x", duration_ms = 1, entry_count = 1 })
+    end)
+    package.loaded["telescope.log"], package.loaded["telescope.finders.timing"] = real_log, real_timing
+    assert(ok, err)
+    assert.is_truthy(infos[1]:find("Spec:", 1, true))
   end)
 
   it("stays quiet when disabled", function()

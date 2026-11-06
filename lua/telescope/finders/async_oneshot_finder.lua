@@ -44,9 +44,9 @@ return function(opts)
         -- Log command execution
         if enable_timing then
           local cmd_string = timing.format_command(job_opts.command, job_opts.args)
-          log.debug(string.format(" - Job Oneshot: %s", cmd_string))
+          timing.log.debug(string.format(" - Job Oneshot: %s", cmd_string))
           if cwd then
-            log.debug(string.format("  CWD: %s", cwd))
+            timing.log.debug(string.format("  CWD: %s", cwd))
           end
           timing_stats = {
             command = cmd_string,
@@ -90,7 +90,7 @@ return function(opts)
           if enable_timing and num_results == 1 then
             timing_stats.first_entry_time = vim.uv.hrtime()
             local time_to_first = (timing_stats.first_entry_time - timing_stats.start_time) / 1e6
-            log.debug(string.format(" - First entry: %5.2fms", time_to_first))
+            timing.log.debug(string.format(" - First entry: %5.2fms", time_to_first))
           end
 
           -- A pipe read resumes here in a fast event, where entry makers can't use the API.

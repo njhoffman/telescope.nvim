@@ -766,6 +766,7 @@ layout_strategies.vertical = make_documented_layout(
         prompt.line = height_padding + (1 + bs)
         results.line = prompt.line + prompt.height + (1 + bs) - (self.theme == "minimal" and 1 or 0)
         preview.line = results.line + results.height + (1 + bs) - (self.theme == "minimal" and 1 or 0)
+        results.zindex = prompt.zindex + (self.theme == "minimal" and 1 or 0)
         preview.zindex = results.zindex + (self.theme == "minimal" and 1 or 0)
       elseif layout_config.prompt_position == "bottom" then
         results.line = height_padding + (1 + bs)

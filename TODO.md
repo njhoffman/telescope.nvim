@@ -7,26 +7,32 @@ inherited TODO/FIXME/HACK comments in `lua/` are upstream's and are not tracked 
 
 ## 1. Bugs in fork code
 
-- [ ] **get_minimal only overlaps windows when mirrored in the vertical layout.** (p3) [bug] Its vertical borders assume an overlap that the default layout never applies.
+- [x] **get_minimal only overlaps windows when mirrored in the vertical layout.** (p3) [bug] Its vertical borders assume an overlap that the default layout never applies.
       `lua/telescope/pickers/layout_strategies.lua` has `self.theme == "minimal"` only in the `mirror` branch of `vertical`.
       Probed at 200x60 with a preview: prompt row 34 and results row 31 at equal zindex, so nothing overlaps, and the 15-line
       cap leaves one results row. `themes.lua` puts a literal `x` in borders it expects to hide, so it likely shows.
       Fix: apply the offsets in the non-mirrored branch and relax the height cap, or drop vertical support.
-- [ ] **which_key links to highlight groups that don't exist.** (p3) [bug] `TelescopeResultsKeyword` and `TelescopePrompt` are undefined after setup.
+- [x] **which_key links to highlight groups that don't exist.** (p3) [bug] `TelescopeResultsKeyword` and `TelescopePrompt` are undefined after setup.
       `lua/telescope/actions/_which_key/highlights.lua` links `TelescopeWhichKeyPickerBind` to the first and
       `TelescopeWhichKeyNormal` to the second, so picker-specific keys lose their intended emphasis unless a colorscheme
       defines them. Fix: link to defined groups, such as `TelescopePromptNormal` for the window.
-- [ ] **enable_timing prints into the message area.** (p3) [bug] Info-level lines go to `:messages` as well as the log file.
+- [x] **enable_timing prints into the message area.** (p3) [bug] Info-level lines go to `:messages` as well as the log file.
       `lua/telescope/log.lua` keeps plenary's default console output. Confirmed with `log.info`: each picker adds at least
       four lines (start, input ready, completed, close), which clutters normal use while profiling. Fix: log the timing
       lines to the file only, for example with a dedicated logger using `use_console = false`.
-- [ ] **Oldfiles rewrites slashes in protocol paths on Windows.** (p3) [bug] The session-buffer loop computes `protocol` but converts anyway.
+- [x] **Oldfiles rewrites slashes in protocol paths on Windows.** (p3) [bug] The session-buffer loop computes `protocol` but converts anyway.
       `lua/telescope/builtin/__internal.lua:566` turns `oil://x` into `oil:\\x`. `has_protocol` also uses `[A-z0-9]`, which
       matches `[ \ ] ^ _` and a backtick. Found by reading; not run on Windows. Fix: skip the conversion for protocol paths and use
       `%a[%w+.-]*://`.
-- [ ] **Remove the Neovim version check in the diagnostics picker.** (p3) [bug] `vim.version().minor > 9` is obsolete and would misfire on Neovim 1.0.
+- [x] **Remove the Neovim version check in the diagnostics picker.** (p3) [bug] `vim.version().minor > 9` is obsolete and would misfire on Neovim 1.0.
       `lua/telescope/builtin/__diagnostics.lua:89`: with minor 0, an empty severity table would no longer be cleared.
       Upstream has the same line, and the 0.11 minimum makes the check unnecessary.
+
+- [ ] **The nvim config shadows two fork modules.** (p2) [bug] Changes to these files don't take effect in the real setup, and specs here can't see it.
+      `~/.config/nvim` comes first on the runtimepath, so its `lua/telescope/log.lua` and `lua/telescope/_extensions/init.lua`
+      replace the fork's. A fork change that used `log.timing` directly would have errored under the real config, while
+      all specs passed because they are isolated from it. `timing.log` now falls back. Fix: rename or wrap the config's copies
+      and diff `_extensions/init.lua` against the fork's; add a config spec that opens a picker with `enable_timing = true`.
 
 ## 2. Tests and CI
 
@@ -47,14 +53,18 @@ inherited TODO/FIXME/HACK comments in `lua/` are upstream's and are not tracked 
 
 ## 3. Docs and cleanup
 
-- [ ] **Correct the documented log path.** (p2) [docs] Following the docs leads to a file that isn't being written.
+- [x] **Correct the documented log path.** (p2) [docs] Following the docs leads to a file that isn't being written.
       `TIMING_DIAGNOSTICS.md:141` and `CLAUDE.md:254` say `~/.cache/nvim/telescope.log`. On the local Neovim 0.13-dev it is
       `~/.local/state/nvim/logs/telescope.log`, and an orphaned 1.7 MB copy sits at `~/.local/state/nvim/telescope.log`.
       Fix: document `:echo stdpath("log")`. The `level = 'info'` advice is also the default, and detail needs `'debug'`.
-- [ ] **Update stale sections of CLAUDE.md.** (p3) [docs] Several parts predate the upstream merge.
+- [x] **Update stale sections of CLAUDE.md.** (p3) [docs] Several parts predate the upstream merge.
       Docgen commands (lines 36-40) still describe tree-sitter-lua, while `make docgen` now uses docgen.nvim from `.deps`. Lines
       153 and 207 require tree-sitter annotations, and line 199 calls `0.1.x` the recommended branch. The timing file list
       omits `finders/timing.lua`, as does `TIMING_DIAGNOSTICS.md`. The custom features section covers timing only.
+- [ ] **Render the which_key options in the vimdoc.** (p3) [docs] The README sends readers to `:help telescope`, but these options aren't there.
+      `lua/telescope/actions/generate.lua` documents them in `telescope.actions.generate.which_key.opts`, while the function
+      declares `@param opts table`, so docgen skips them, upstream's included. Fix: reference the class from `@param`.
+      The 0.7.2 changelog line about restoring the which_key options overstated this; only the notes on `actions.which_key` came back.
 - [ ] **Decide whether cached pickers need project fields.** (p3) [refactor] `timestamp`, `cwd` and `project` are written but never read.
       `lua/telescope/pickers.lua:1764` sets them on every close, and nothing here or in the nvim config uses them, yet
       `project` is the only reason telescope touches project.nvim. Fix: remove them, or use them in a picker of cached pickers.

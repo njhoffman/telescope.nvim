@@ -7,6 +7,23 @@ fork release, so see upstream for earlier history.
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-11-05
+
+### Changed
+
+- `themes.get_minimal` with the vertical layout defaults to `mirror = true` and a 30-line height cap,
+  so its windows share borders and results get more than one row.
+- `enable_timing` output goes only to the log file, not `:messages`. Use
+  `require("telescope.log").timing.level` to set its level. A replaced `telescope.log` without
+  `timing` is used as is.
+
+### Fixed
+
+- which_key popup uses highlight groups that exist, so picker-specific keys get their emphasis.
+- Oldfiles keeps protocol paths intact on Windows.
+- Diagnostics picker no longer depends on a Neovim version check that would misfire on 1.0.
+- Timing docs give the real log location.
+
 ## [0.7.7] - 2026-11-05
 
 ### Added

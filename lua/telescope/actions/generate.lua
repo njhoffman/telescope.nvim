@@ -42,8 +42,8 @@ local action_generate = {}
 ---@field line_padding number: row padding in top and bottom of float (default: 1)
 ---@field separator string: separator string between mode, key bindings, and action (default: " -> ")
 ---@field close_with_action boolean: registered action will close keymap float (default: true)
----@field normal_hl string: winhl of "Normal" for keymap hints floating window (default: "TelescopePrompt")
----@field border_hl string: winhl of "Normal" for keymap borders (default: "TelescopePromptBorder")
+---@field normal_hl string: winhl of "Normal" for keymap hints floating window (default: "TelescopeWhichKeyNormal")
+---@field border_hl string: winhl of "Normal" for keymap borders (default: "TelescopeWhichKeyBorder")
 ---@field winblend number: pseudo-transparency of keymap hints floating window
 ---@field zindex number: z-index of keymap hints floating window (default: 100)
 ---@field categorize_mappings boolean: group and highlight mappings by origin — "default" (built-in telescope), "user_global" (your setup.defaults.mappings), and "picker" (per-picker attach_mappings or extension) (default: true)

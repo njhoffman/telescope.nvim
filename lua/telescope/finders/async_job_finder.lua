@@ -47,9 +47,9 @@ return function(opts)
     -- Log command execution
     local cmd_string = timing.format_command(job_opts.command, job_opts.args)
     if enable_timing then
-      log.debug(string.format(" - Job Finder:  %s", cmd_string))
+      timing.log.debug(string.format(" - Job Finder:  %s", cmd_string))
       if job_opts.cwd then
-        log.debug(string.format("  CWD: %s", job_opts.cwd))
+        timing.log.debug(string.format("  CWD: %s", job_opts.cwd))
       end
       timing_stats = {
         command = cmd_string,
@@ -87,7 +87,7 @@ return function(opts)
       if enable_timing and line_num == 1 then
         timing_stats.first_entry_time = vim.uv.hrtime()
         local time_to_first = (timing_stats.first_entry_time - timing_stats.start_time) / 1e6
-        log.debug(string.format(" - First entry: %5.2fms", time_to_first))
+        timing.log.debug(string.format(" - First entry: %5.2fms", time_to_first))
       end
 
       local entry = entry_maker(line)
