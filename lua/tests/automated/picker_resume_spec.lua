@@ -25,6 +25,12 @@ describe("resuming a picker", function()
     return action_state.get_current_picker(vim.api.nvim_get_current_buf())
   end
 
+  it("keeps the extension export name on the picker", function()
+    local picker = open { __name = "ext.export" }
+    assert.are.equal("ext.export", picker.__name)
+    actions.close(picker.prompt_bufnr)
+  end)
+
   it("keeps a per-picker preview.debounce", function()
     actions.close(open({ preview = { debounce = 20 } }).prompt_bufnr)
     local resumed = resume()

@@ -28,11 +28,10 @@ inherited TODO/FIXME/HACK comments in `lua/` are upstream's and are not tracked 
       `lua/telescope/builtin/__diagnostics.lua:89`: with minor 0, an empty severity table would no longer be cleared.
       Upstream has the same line, and the 0.11 minimum makes the check unnecessary.
 
-- [ ] **The nvim config shadows two fork modules.** (p2) [bug] Changes to these files don't take effect in the real setup, and specs here can't see it.
+- [x] **The nvim config shadowed two fork modules.** (p2) [bug] Changes to these files didn't take effect in the real setup, and specs here couldn't see it.
       `~/.config/nvim` comes first on the runtimepath, so its `lua/telescope/log.lua` and `lua/telescope/_extensions/init.lua`
-      replace the fork's. A fork change that used `log.timing` directly would have errored under the real config, while
-      all specs passed because they are isolated from it. `timing.log` now falls back. Fix: rename or wrap the config's copies
-      and diff `_extensions/init.lua` against the fork's; add a config spec that opens a picker with `enable_timing = true`.
+      replaced the fork's. The extension features moved into the fork, and the config now configures `telescope.log` at setup.
+      `tests/unit/telescope_shadow_spec.lua` in the config fails if a shadow comes back.
 
 ## 2. Tests and CI
 

@@ -3,6 +3,7 @@ local extensions = {}
 extensions._loaded = {}
 extensions._config = {}
 extensions._health = {}
+extensions._has_setup = {}
 
 local load_extension = function(name)
   local ok, ext = pcall(require, "telescope._extensions." .. name)
@@ -12,12 +13,33 @@ local load_extension = function(name)
   return ext
 end
 
+--- `load` and first use both reach this, and an extension should only be set up once.
+local setup_once = function(name, ext)
+  if ext.setup and not extensions._has_setup[name] then
+    ext.setup(extensions._config[name] or {}, require("telescope.config").values)
+    extensions._has_setup[name] = true
+  end
+end
+
+--- Tells a picker which export opened it, through `opts.__name`.
+local with_name = function(name, fn)
+  return function(opts, ...)
+    if opts ~= nil and type(opts) ~= "table" then
+      return fn(opts, ...)
+    end
+    return fn(vim.tbl_deep_extend("force", {}, opts or {}, { __name = name }), ...)
+  end
+end
+
 extensions.manager = setmetatable({}, {
   __index = function(t, k)
     local ext = load_extension(k)
     t[k] = ext.exports or {}
-    if ext.setup then
-      ext.setup(extensions._config[k] or {}, require("telescope.config").values)
+    setup_once(k, ext)
+    for key, value in pairs(t[k]) do
+      if type(value) == "function" then
+        t[k][key] = with_name(k .. "." .. key, value)
+      end
     end
     extensions._health[k] = ext.health
 
@@ -60,14 +82,12 @@ end
 
 extensions.load = function(name)
   local ext = load_extension(name)
-  if ext.setup then
-    ext.setup(extensions._config[name] or {}, require("telescope.config").values)
-  end
+  setup_once(name, ext)
   return extensions.manager[name]
 end
 
 extensions.set_config = function(extensions_config)
-  extensions._config = extensions_config or {}
+  extensions._config = vim.deepcopy(extensions_config or {})
 end
 
 return extensions

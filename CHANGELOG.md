@@ -7,6 +7,17 @@ fork release, so see upstream for earlier history.
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-11-05
+
+### Added
+
+- Extension exports tell their picker which export opened it, through `opts.__name` and `picker.__name`.
+
+### Fixed
+
+- An extension's `setup` runs once, not again on first use after `load_extension`.
+- The extension config is copied, so later changes to the caller's table don't affect it.
+
 ## [0.8.1] - 2026-11-05
 
 ### Fixed
