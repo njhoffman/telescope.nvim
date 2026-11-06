@@ -30,6 +30,9 @@ files = {
       "631", -- allow line len > 120
     }
   },
+  ["lua/tests/helpers.lua"] = {
+    globals = { "PASSED", "COMPLETED" },
+  },
   ["lua/telescope/actions/generate.lua"] = {
     ignore = {
       "631", -- ---@field annotations stay on one line

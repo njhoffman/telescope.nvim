@@ -50,12 +50,12 @@ describe("builtin.find_files", function()
       ))
     end)
 
-    pending("use devicons, if it has it when enabled", function()
+    it("use devicons, if it has it when enabled", function()
       if not pcall(require, "nvim-web-devicons") then
         return
       end
 
-      local md = require("nvim-web-devicons").get_icon "md"
+      local md = require("nvim-web-devicons").get_icon("README.md", "md", { default = true })
       tester.run_string(string.format(
         [[
         runner.picker('find_files', 'README.md', {

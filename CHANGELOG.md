@@ -7,6 +7,21 @@ fork release, so see upstream for earlier history.
 
 ## [Unreleased]
 
+## [0.9.1] - 2026-11-05
+
+### Added
+
+- The which_key options appear under `action_generate.which_key` in `:help telescope`.
+
+### Changed
+
+- CI tests the minimum Neovim, v0.11.0, checks generated docs on pushes to master, and lints specs too.
+- Test setup looks for nvim-web-devicons at `../nvim-web-devicons`, so the devicons test can run.
+
+### Fixed
+
+- The center layout's `results_height` no longer pushes windows off the screen when larger than the room available.
+
 ## [0.9.0] - 2026-11-05
 
 ### Added

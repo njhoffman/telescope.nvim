@@ -8,6 +8,7 @@ set packpath=
 
 set rtp+=.
 set rtp+=../plenary.nvim/
+set rtp+=../nvim-web-devicons/
 " Set PLENARY_DIR when plenary.nvim is not checked out next to this repo.
 if !empty($PLENARY_DIR)
   execute 'set rtp+=' . fnameescape($PLENARY_DIR)

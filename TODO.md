@@ -35,19 +35,19 @@ inherited TODO/FIXME/HACK comments in `lua/` are upstream's and are not tracked 
 
 ## 2. Tests and CI
 
-- [ ] **Resolve the three pending tests.** (p3) [test] They are skipped, not passing, and all are inherited.
+- [x] **Resolve the three pending tests.** (p3) [test] They are skipped, not passing, and all are inherited.
       `action_spec.lua:491` (select and edit compatibility) and `telescope_spec.lua:98` (fuzzy_file ordering) have no
       implementation decision recorded. `find_files_spec.lua:53` (devicons) can't run as written: CI clones
       `../nvim-web-devicons`, but `minimal_init.vim` never adds it to the runtimepath. Implement or delete each.
-- [ ] **Add specs for the remaining fork options.** (p3) [test] Grep of `lua/tests` finds no coverage for them.
+- [x] **Add specs for the remaining fork options.** (p3) [test] Grep of `lua/tests` finds no coverage for them.
       Missing: `scroll_previewer_by` and `scroll_previewer_page` without animation, and the center layout's `results_height`,
       including a value larger than the available height. Oldfiles has no specs either, which matters for the Windows bug.
 - [ ] **Test the minimum Neovim version.** (p3) [test] The CI matrix runs only stable and nightly, while `plugin/telescope.lua` accepts any 0.11.
       Nothing checks the floor once stable moves past it. The README says `>=v0.11.7` and links to v0.11.6, which is inherited.
       Fix: add a pinned 0.11 to `ci.yml` and make the README and the check agree.
-- [ ] **Check docs on push.** (p3) [chore] `docgen.yml` runs only on pull requests, and this fork pushes straight to master.
+- [x] **Check docs on push.** (p3) [chore] `docgen.yml` runs only on pull requests, and this fork pushes straight to master.
       `make docgen` is clean today, but only because it was run by hand. Fix: add `push: branches: [master]`.
-- [ ] **Extend luacheck to the specs.** (p3) [chore] `make lint` covers `lua/telescope` only, and `lua/tests` has 6 warnings.
+- [x] **Extend luacheck to the specs.** (p3) [chore] `make lint` covers `lua/telescope` only, and `lua/tests` has 6 warnings.
       `luacheck lua/tests` reports 4 W211 and 2 W111. Fix them and lint both paths, keeping any test globals in `.luacheckrc`.
 
 ## 3. Docs and cleanup
@@ -60,7 +60,7 @@ inherited TODO/FIXME/HACK comments in `lua/` are upstream's and are not tracked 
       Docgen commands (lines 36-40) still describe tree-sitter-lua, while `make docgen` now uses docgen.nvim from `.deps`. Lines
       153 and 207 require tree-sitter annotations, and line 199 calls `0.1.x` the recommended branch. The timing file list
       omits `finders/timing.lua`, as does `TIMING_DIAGNOSTICS.md`. The custom features section covers timing only.
-- [ ] **Render the which_key options in the vimdoc.** (p3) [docs] The README sends readers to `:help telescope`, but these options aren't there.
+- [x] **Render the which_key options in the vimdoc.** (p3) [docs] The README sends readers to `:help telescope`, but these options aren't there.
       `lua/telescope/actions/generate.lua` documents them in `telescope.actions.generate.which_key.opts`, while the function
       declares `@param opts table`, so docgen skips them, upstream's included. Fix: reference the class from `@param`.
       The 0.7.2 changelog line about restoring the which_key options overstated this; only the notes on `actions.which_key` came back.
@@ -70,7 +70,7 @@ inherited TODO/FIXME/HACK comments in `lua/` are upstream's and are not tracked 
 - [ ] **Review inherited project files.** (p3) [chore] Several still describe upstream's project rather than this fork.
       `.github/FUNDING.yml`, `.github/ISSUE_TEMPLATE/config.yml`, `.github/dependabot.yml`, the README LuaRocks badge, and
       `telescope.nvim-scm-1.rockspec`, which nothing publishes since the release workflow was removed.
-- [ ] **Remove leftover local refs.** (p3) [chore] Neither is needed now.
+- [x] **Remove leftover local refs.** (p3) [chore] Neither is needed now.
       The `sync-upstream` branch is fully merged into master. The `minimal-theme` remote only served the theme port.
 
 ## 4. Upstream
@@ -79,10 +79,12 @@ inherited TODO/FIXME/HACK comments in `lua/` are upstream's and are not tracked 
       `async_oneshot_finder.lua` upstream has `if num_results % await_count then`. The fix here needs `vim.in_fast_event()`
       too, and the description should say it is a correctness cleanup with no measurable speedup in a real picker. Opening a
       PR is public, so it is your call.
-- [ ] **Watch open upstream PRs.** (p3) [chore] Upstream has no new commits since `40aedd8`, but these touch code this fork uses.
-      #3690 selection caret while streaming (`pickers.lua`), #3691 nil entries in `get_substr_matcher`, #3686 prefilter tags
-      with whitespace, #3682 `bufadd()` instead of `fnameescape()`, #3697 custom scheme previews, #3694 picker ref count.
-      Titles only; not reviewed. Cherry-pick any that fix something hit here.
+- [ ] **Watch open upstream PRs.** (p3) [chore] Upstream has no new commits since `40aedd8`. Diffs of these six were read on 2026-11-05; none applied.
+      Worth taking if upstream stalls: #3691 (one line, nil entry guard in `get_substr_matcher`) and #3690 (selection caret
+      and `<CR>` while results stream; add its throttle timer to `self.timers`, which the PR doesn't do, or it leaks).
+      Only if hit: #3686 (prefilter tags with whitespace), #3697 (previews for custom URI schemes).
+      Skip: #3682 (replaces `fnameescape` with `bufadd`, wraps edits in `pcall` that hides errors, its author asks for careful
+      review) and #3694 (`get_ref` increments the counter, which looks like a bug).
 
 ## Completed
 

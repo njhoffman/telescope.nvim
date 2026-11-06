@@ -4,7 +4,7 @@ test:
 	nvim --headless --noplugin -u scripts/minimal_init.vim -c "PlenaryBustedDirectory lua/tests/automated/ { minimal_init = './scripts/minimal_init.vim' }"
 
 lint:
-	luacheck lua/telescope
+	luacheck lua/telescope lua/tests
 
 .deps/docgen.nvim:
 	git clone --depth 1 --branch v1.1.0 https://github.com/jamestrew/docgen.nvim $@

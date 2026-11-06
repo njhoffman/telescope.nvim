@@ -3,7 +3,6 @@ local display = require "telescope.actions._which_key.display"
 local layout = require "telescope.actions._which_key.layout"
 
 local eq = assert.are.equal
-local same = assert.are.same
 
 describe("actions._which_key", function()
   describe("description parsing", function()

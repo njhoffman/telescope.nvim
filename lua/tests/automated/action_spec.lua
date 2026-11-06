@@ -208,7 +208,6 @@ describe("actions", function()
   it("static_pre static_post", function()
     local called_pre = false
     local called_post = false
-    local static_post = 0
     local a = transform_mod {
       x = {
         pre = function()
@@ -488,7 +487,7 @@ describe("actions", function()
       eq("replaced:vnew", actions.file_vsplit())
     end)
 
-    pending("handles backwards compat with select and edit files", function()
+    it("handles backwards compat with select and edit files", function()
       -- Reproduce steps:
       --  In config, we have { ["<CR>"] = actions.select, ... }
       --  In caller, we have actions._goto:replace(...)

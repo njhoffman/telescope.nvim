@@ -3434,7 +3434,67 @@ actions_generate.which_key({opts})
         setting `close_with_action` to false.
 
     Parameters: ~
-      • {opts}  (`table`) options to pass to toggling registered actions
+      • {opts}  (`table`)
+                • {max_height} (`number`, default: 0.4) % of max. height or
+                  no. of rows for hints , see |resolver.resolve_height()|
+                • {only_show_current_mode} (`boolean`, default: true) only
+                  show keymaps for the current mode
+                • {mode_width} (`number`, default: 1) fixed width of mode to
+                  be shown
+                • {keybind_width} (`number`, default: 7) fixed width of
+                  keybind to be shown
+                • {name_width} (`number`, default: 30) fixed width of action
+                  name to be shown
+                • {column_padding} (`string`, default: " ") string to split;
+                  can be used for vertical separator
+                • {mode_hl} (`string`, default: TelescopeResultsConstant) hl
+                  group of mode
+                • {keybind_hl} (`string`, default: TelescopeResultsVariable)
+                  hl group of keybind
+                • {name_hl} (`string`, default: TelescopeResultsFunction) hl
+                  group of action name
+                • {column_indent} (`number`, default: 4) number of left-most
+                  spaces before keybinds are shown
+                • {line_padding} (`number`, default: 1) row padding in top and
+                  bottom of float
+                • {separator} (`string`, default: " -> ") separator string
+                  between mode, key bindings, and action
+                • {close_with_action} (`boolean`, default: true) registered
+                  action will close keymap float
+                • {normal_hl} (`string`, default: "TelescopeWhichKeyNormal")
+                  winhl of "Normal" for keymap hints floating window
+                • {border_hl} (`string`, default: "TelescopeWhichKeyBorder")
+                  winhl of "Normal" for keymap borders
+                • {winblend} (`number`) pseudo-transparency of keymap hints
+                  floating window
+                • {zindex} (`number`, default: 100) z-index of keymap hints
+                  floating window
+                • {categorize_mappings} (`boolean`, default: true) group and
+                  highlight mappings by origin — "default" (built-in
+                  telescope), "user_global" (your setup.defaults.mappings),
+                  and "picker" (per-picker attach_mappings or extension)
+                • {category_drop_order} (`string[]`, default: { "default",
+                  "user_global" }) order in which categories are dropped on
+                  overflow; "picker" is always kept last
+                • {default_hl} (`table`, default: links to
+                  TelescopeWhichKeyDefault{Mode,Bind,Name}) { mode, keybind,
+                  name } hl override for `default`-origin mappings
+                • {user_hl} (`table`, default: links to
+                  TelescopeWhichKeyUser{Mode,Bind,Name}) { mode, keybind, name
+                  } hl override for `user_global`-origin mappings
+                • {picker_hl} (`table`, default: links to
+                  TelescopeWhichKeyPicker{Mode,Bind,Name}) { mode, keybind,
+                  name } hl override for `picker`-origin mappings
+                • {key_labels} (`table<string,string>`) exact-match
+                  substitutions applied before display, e.g. { |"<CR>"| =
+                  "Enter" }
+                • {replace_keys} (`table`) list of { pattern, replacement }
+                  Lua-pattern pairs applied after key_labels; use for generic
+                  rewrites like { { "^", "" } }
+                • {use_default_key_labels} (`boolean`, default: false) merge a
+                  small built-in `key_labels` table for common keys
+                • {resize} (`boolean`, default: true) reopen the popup on
+                  VimResized so it reflows for the new editor size
 
 
 ==============================================================================

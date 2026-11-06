@@ -540,7 +540,9 @@ layout_strategies.center = make_documented_layout(
 
     -- set the height of the results window if specified
     if layout_config.results_height then
-      local diff = results.height - resolve.resolve_height(layout_config.results_height)(self, max_columns, max_lines)
+      local requested = resolve.resolve_height(layout_config.results_height)(self, max_columns, max_lines)
+      -- Results can only grow into the room the preview has.
+      local diff = results.height - math.min(requested, results.height + math.max(preview.height, 0))
       results.height = results.height - diff
       results.line = results.line + diff
       preview.height = preview.height + diff

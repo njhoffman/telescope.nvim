@@ -61,7 +61,7 @@ local action_generate = {}
 ---   - Appears on the opposite side of the prompt.
 ---   - Resolves to minimum required number of lines to show hints with `opts` or truncates entries at `max_height`.
 ---   - Closes automatically on action call and can be disabled with by setting `close_with_action` to false.
----@param opts table: options to pass to toggling registered actions
+---@param opts telescope.actions.generate.which_key.opts: options to pass to toggling registered actions
 action_generate.which_key = function(opts)
   local which_key = function(prompt_bufnr)
     actions.which_key(prompt_bufnr, opts)

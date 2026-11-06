@@ -33,6 +33,28 @@ describe("builtin.oldfiles", function()
     assert.is_true(vim.tbl_contains(results, "oil:///some/dir/"))
   end)
 
+  it("does not treat a name with an invalid scheme as a protocol", function()
+    local other = vim.api.nvim_create_buf(true, false)
+    vim.api.nvim_buf_set_name(other, "a_b://not/a/file")
+    local current = vim.api.nvim_get_current_buf()
+    vim.api.nvim_set_current_buf(other)
+    vim.api.nvim_set_current_buf(current)
+    internal.oldfiles {}
+    vim.api.nvim_buf_delete(other, { force = true })
+    assert.is_false(vim.tbl_contains(results, "a_b://not/a/file"))
+  end)
+
+  it("lists existing old files and drops missing ones", function()
+    local real = vim.fn.tempname()
+    vim.fn.writefile({ "x" }, real)
+    local old_oldfiles = vim.v.oldfiles
+    vim.v.oldfiles = { real, real .. ".missing" }
+    internal.oldfiles { include_current_session = false }
+    vim.v.oldfiles = old_oldfiles
+    vim.fn.delete(real)
+    assert.are.same({ real }, results)
+  end)
+
   it("does not convert the slashes of a protocol path on Windows", function()
     utils.iswin = true
     internal.oldfiles {}
