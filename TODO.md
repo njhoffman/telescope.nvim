@@ -47,6 +47,11 @@ TODO/FIXME/HACK comments in `lua/` are upstream's and are not tracked here.
       Reproduced: a picker made with `{ preview = { debounce = 20 } }` has no `_preview_refresh_debounced` after resume.
       Fix: keep the value on the picker and read it in `Picker:new`.
 
+- [ ] **which_key shows no mappings when one category overflows.** (p2) [bug] Truncation drops whole categories instead of trimming them.
+      `M.truncate` in `lua/telescope/actions/_which_key/layout.lua` empties `default` whenever the total exceeds capacity.
+      Reproduced at 80x24: 28 default mappings, room for 9, and the popup shows only `... +28 more`. Fix: stop dropping
+      once the remainder fits and clip the last category; `which_key_spec` truncate cases may need updating.
+
 ## 2. Upstream sync
 
 - [ ] **Merge the 29 upstream commits.** (p1) [chore] The last upstream merge was March 2026 and a dry run conflicts in 11 files.
@@ -58,7 +63,7 @@ TODO/FIXME/HACK comments in `lua/` are upstream's and are not tracked here.
       `.stylua.toml` sets `call_parentheses = "Always"` (upstream `"None"`), and parts of `layout_strategies.lua` wrap near
       100 columns against a configured 120. Measured in a scratch clone with all three sides normalized to upstream's
       config: code conflict hunks drop from 23 to 12, files from 11 to 9, `layout_strategies.lua` from 10 hunks to 1.
-- [ ] **Decide on upstream's Neovim 0.11 minimum.** (p2) [chore] `e6cdb4d` requires 0.11 and drops the compat shims; the fork declares 0.10.4.
+- [x] **Decide on upstream's Neovim 0.11 minimum.** (p2) [chore] `e6cdb4d` requires 0.11 and drops the compat shims; the fork declares 0.10.4.
       Adopting it removes `utils.nvim011` and the shims in `utils.lua`, `debounce.lua` and `__lsp.lua`. Touches
       `plugin/telescope.lua`, the README and the CI matrix. Local nvim is 0.13-dev, so adopting looks low risk here.
 - [ ] **Plan for breaking upstream changes.** (p2) [refactor] Several need follow-up beyond conflict resolution.
@@ -87,6 +92,10 @@ TODO/FIXME/HACK comments in `lua/` are upstream's and are not tracked here.
       `~/.config/nvim/lua/modules/gitops`. Local run on `cce6200`: 276 passed and 0 failed in the other specs, 5 errors in
       `gitops_exports_spec`, and `gitops_entry` and `gitops_utils` report no results, so `make test` exits 1. Fix: move the
       specs next to the module. `which_key_spec` should be unaffected.
+- [ ] **Tests are not isolated from the personal nvim config.** (p2) [test] `-u scripts/minimal_init.vim` leaves `~/.config/nvim` on the runtimepath.
+      `runtime! plugin/telescope.lua` also runs the config's copy, and `project_nvim` resolves from
+      `~/.config/nvim/lua`, which hid the close bug locally. Runs print sidebar errors and `Bad config file`. Fix: remove
+      the config and data dirs from `rtp` in `minimal_init.vim`, or set `XDG_CONFIG_HOME` in the Makefile.
 - [ ] **CI is red on master.** (p2) [chore] The latest runs (2026-10-20) fail on every leg of Tests and on both lint jobs.
       Tests fails at "Run tests" on all 9 OS/version legs; the logs did not yield a cause, and the gitops specs are the
       likely one. Luacheck reports 8 W631 long lines (`actions/generate.lua`, `actions/_which_key/highlights.lua`) and
@@ -109,7 +118,7 @@ TODO/FIXME/HACK comments in `lua/` are upstream's and are not tracked here.
       Add a short section linking `TIMING_DIAGNOSTICS.md` and covering preview scroll actions, `preview.debounce`, which_key
       categories, gitsigns detection, `get_minimal`, `scrolling_limit`, `strip_path_prefix`. State that project.nvim and
       gitsigns are optional.
-- [ ] **Fix the version in CLAUDE.md.** (p3) [docs] It says Neovim v0.10.0+ while `plugin/telescope.lua` requires 0.10.4.
+- [x] **Fix the version in CLAUDE.md.** (p3) [docs] It says Neovim v0.10.0+ while `plugin/telescope.lua` requires 0.10.4.
       Update together with the 0.11 decision in project 2.
 - [ ] **Remove stray tracked files.** (p3) [chore] Both are session notes rather than project files.
       `.claude/session-summary.md` is tracked although `.claude/` is ignored. `doc/specs/todo.md` is one URL with raw ANSI

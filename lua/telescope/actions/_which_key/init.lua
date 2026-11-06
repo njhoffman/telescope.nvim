@@ -264,7 +264,7 @@ function M.run(prompt_bufnr, opts)
 
   for _, h in ipairs(highlights) do
     for _, hl_block in ipairs(h.hl) do
-      utils.hl_range(km_buf, ns, hl_block[2], { h.row, h.col + hl_block[1][1] }, { h.row, h.col + hl_block[1][2] })
+      vim.hl.range(km_buf, ns, hl_block[2], { h.row, h.col + hl_block[1][1] }, { h.row, h.col + hl_block[1][2] })
     end
   end
 

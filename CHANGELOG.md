@@ -7,6 +7,17 @@ fork release, so see upstream for earlier history.
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-11-05
+
+### Changed
+
+- **Breaking:** Neovim 0.11 is now the minimum, matching upstream. Compatibility shims for 0.10 are gone,
+  including `utils.hl_range`, `utils.str_byteindex`, `utils.validate` and `utils.has_ts_parser`.
+
+### Removed
+
+- **Breaking:** `results_ts_highlight` option. Treesitter highlighting is used whenever a parser is available.
+
 ## [0.5.1] - 2026-11-05
 
 ### Changed
