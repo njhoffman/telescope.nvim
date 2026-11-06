@@ -7,6 +7,14 @@ fork release, so see upstream for earlier history.
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-11-05
+
+### Removed
+
+- `timestamp`, `cwd` and `project` from `cache_picker`. Nothing read them, and telescope no longer loads project.nvim.
+- Files describing upstream's project: `.github/FUNDING.yml`, `.github/ISSUE_TEMPLATE/config.yml`,
+  `.github/dependabot.yml`, `telescope.nvim-scm-1.rockspec` and the README's LuaRocks badge.
+
 ## [0.9.2] - 2026-11-05
 
 ### Fixed

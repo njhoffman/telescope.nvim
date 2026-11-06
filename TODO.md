@@ -5,8 +5,22 @@ Issues and suggestions for this fork of telescope.nvim. Reviewed: 2026-11-05
 Baseline at review: fork master `8c5b79f` (v0.7.7), level with upstream master `40aedd8`. About 80
 inherited TODO/FIXME/HACK comments in `lua/` are upstream's and are not tracked here.
 
-## 1. Bugs in fork code
+## 4. Upstream
 
+- [ ] **Offer the oneshot yield fix upstream.** (p3) [chore] Upstream's read loop has the same always-true check.
+      `async_oneshot_finder.lua` upstream has `if num_results % await_count then`. The fix here needs `vim.in_fast_event()`
+      too, and the description should say it is a correctness cleanup with no measurable speedup in a real picker. Opening a
+      PR is public, so it is your call.
+- [ ] **Watch open upstream PRs.** (p3) [chore] Upstream has no new commits since `40aedd8`. Diffs of these six were read on 2026-11-05; none applied.
+      Worth taking if upstream stalls: #3691 (one line, nil entry guard in `get_substr_matcher`) and #3690 (selection caret
+      and `<CR>` while results stream; add its throttle timer to `self.timers`, which the PR doesn't do, or it leaks).
+      Only if hit: #3686 (prefilter tags with whitespace), #3697 (previews for custom URI schemes).
+      Skip: #3682 (replaces `fnameescape` with `bufadd`, wraps edits in `pcall` that hides errors, its author asks for careful
+      review) and #3694 (`get_ref` increments the counter, which looks like a bug).
+
+## Completed
+
+### 1. Bugs in fork code (completed 2026-11-05)
 - [x] **get_minimal only overlaps windows when mirrored in the vertical layout.** (p3) [bug] Its vertical borders assume an overlap that the default layout never applies.
       `lua/telescope/pickers/layout_strategies.lua` has `self.theme == "minimal"` only in the `mirror` branch of `vertical`.
       Probed at 200x60 with a preview: prompt row 34 and results row 31 at equal zindex, so nothing overlaps, and the 15-line
@@ -33,8 +47,7 @@ inherited TODO/FIXME/HACK comments in `lua/` are upstream's and are not tracked 
       replaced the fork's. The extension features moved into the fork, and the config now configures `telescope.log` at setup.
       `tests/unit/telescope_shadow_spec.lua` in the config fails if a shadow comes back.
 
-## 2. Tests and CI
-
+### 2. Tests and CI (completed 2026-11-05)
 - [x] **Resolve the three pending tests.** (p3) [test] They are skipped, not passing, and all are inherited.
       `action_spec.lua:491` (select and edit compatibility) and `telescope_spec.lua:98` (fuzzy_file ordering) have no
       implementation decision recorded. `find_files_spec.lua:53` (devicons) can't run as written: CI clones
@@ -50,8 +63,7 @@ inherited TODO/FIXME/HACK comments in `lua/` are upstream's and are not tracked 
 - [x] **Extend luacheck to the specs.** (p3) [chore] `make lint` covers `lua/telescope` only, and `lua/tests` has 6 warnings.
       `luacheck lua/tests` reports 4 W211 and 2 W111. Fix them and lint both paths, keeping any test globals in `.luacheckrc`.
 
-## 3. Docs and cleanup
-
+### 3. Docs and cleanup (completed 2026-11-05)
 - [x] **Correct the documented log path.** (p2) [docs] Following the docs leads to a file that isn't being written.
       `TIMING_DIAGNOSTICS.md:141` and `CLAUDE.md:254` say `~/.cache/nvim/telescope.log`. On the local Neovim 0.13-dev it is
       `~/.local/state/nvim/logs/telescope.log`, and an orphaned 1.7 MB copy sits at `~/.local/state/nvim/telescope.log`.
@@ -64,29 +76,14 @@ inherited TODO/FIXME/HACK comments in `lua/` are upstream's and are not tracked 
       `lua/telescope/actions/generate.lua` documents them in `telescope.actions.generate.which_key.opts`, while the function
       declares `@param opts table`, so docgen skips them, upstream's included. Fix: reference the class from `@param`.
       The 0.7.2 changelog line about restoring the which_key options overstated this; only the notes on `actions.which_key` came back.
-- [ ] **Decide whether cached pickers need project fields.** (p3) [refactor] `timestamp`, `cwd` and `project` are written but never read.
+- [x] **Decide whether cached pickers need project fields.** (p3) [refactor] `timestamp`, `cwd` and `project` are written but never read.
       `lua/telescope/pickers.lua:1764` sets them on every close, and nothing here or in the nvim config uses them, yet
       `project` is the only reason telescope touches project.nvim. Fix: remove them, or use them in a picker of cached pickers.
-- [ ] **Review inherited project files.** (p3) [chore] Several still describe upstream's project rather than this fork.
+- [x] **Review inherited project files.** (p3) [chore] Several still describe upstream's project rather than this fork.
       `.github/FUNDING.yml`, `.github/ISSUE_TEMPLATE/config.yml`, `.github/dependabot.yml`, the README LuaRocks badge, and
       `telescope.nvim-scm-1.rockspec`, which nothing publishes since the release workflow was removed.
 - [x] **Remove leftover local refs.** (p3) [chore] Neither is needed now.
       The `sync-upstream` branch is fully merged into master. The `minimal-theme` remote only served the theme port.
-
-## 4. Upstream
-
-- [ ] **Offer the oneshot yield fix upstream.** (p3) [chore] Upstream's read loop has the same always-true check.
-      `async_oneshot_finder.lua` upstream has `if num_results % await_count then`. The fix here needs `vim.in_fast_event()`
-      too, and the description should say it is a correctness cleanup with no measurable speedup in a real picker. Opening a
-      PR is public, so it is your call.
-- [ ] **Watch open upstream PRs.** (p3) [chore] Upstream has no new commits since `40aedd8`. Diffs of these six were read on 2026-11-05; none applied.
-      Worth taking if upstream stalls: #3691 (one line, nil entry guard in `get_substr_matcher`) and #3690 (selection caret
-      and `<CR>` while results stream; add its throttle timer to `self.timers`, which the PR doesn't do, or it leaks).
-      Only if hit: #3686 (prefilter tags with whitespace), #3697 (previews for custom URI schemes).
-      Skip: #3682 (replaces `fnameescape` with `bufadd`, wraps edits in `pcall` that hides errors, its author asks for careful
-      review) and #3694 (`get_ref` increments the counter, which looks like a bug).
-
-## Completed
 
 ### 1. Bugs in fork code (completed 2026-11-05)
 

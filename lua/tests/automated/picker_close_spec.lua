@@ -28,7 +28,7 @@ describe("closing a picker", function()
     package.preload.project_nvim = old_preload
   end)
 
-  it("works without project.nvim and caches no project", function()
+  it("works without project.nvim", function()
     package.preload.project_nvim = function()
       error "module 'project_nvim' not found"
     end
@@ -39,21 +39,5 @@ describe("closing a picker", function()
 
     assert.is_false(vim.api.nvim_win_is_valid(prompt_win))
     assert.is_true(picker.cache_picker.is_cached)
-    assert.is_nil(picker.cache_picker.project)
-  end)
-
-  it("records the project root when project.nvim is available", function()
-    package.preload.project_nvim = function()
-      return {
-        get_project_root = function()
-          return "/some/project", "lsp"
-        end,
-      }
-    end
-
-    local picker = open_picker()
-    actions.close(picker.prompt_bufnr)
-
-    assert.are.equal("/some/project", picker.cache_picker.project)
   end)
 end)

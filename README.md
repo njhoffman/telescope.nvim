@@ -1,7 +1,5 @@
 # telescope.nvim
 
-[![LuaRocks](https://img.shields.io/luarocks/v/Conni2461/telescope.nvim?logo=lua&color=purple)](https://luarocks.org/modules/Conni2461/telescope.nvim)
-
 Gaze deeply into unknown regions using the power of the moon.
 
 ## About This Fork
@@ -20,13 +18,10 @@ See [CHANGELOG.md](CHANGELOG.md) for releases and `:help telescope` for the opti
 - **Which-key popup:** groups mappings by origin, keeps the most specific ones when space runs out,
   reflows on resize, and relabels keys with `key_labels` and `replace_keys`.
 - **Git pickers follow the buffer:** without an explicit `cwd`, they use the repo
-  [gitsigns](https://github.com/lewis6991/gitsigns.nvim) detected for the current buffer, which
-  supports bare-repo dotfiles.
+  [gitsigns](https://github.com/lewis6991/gitsigns.nvim), if installed, detected for the current
+  buffer, which supports bare-repo dotfiles.
 - **Smaller additions:** `themes.get_minimal`, `scrolling_limit`, `strip_path_prefix` and the center
   layout's `results_height`.
-
-gitsigns and [project.nvim](https://github.com/ahmedkhalf/project.nvim) are optional. With project.nvim
-installed, cached pickers also record the project root.
 
 ## What Is Telescope?
 

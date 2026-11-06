@@ -1764,11 +1764,6 @@ function pickers.on_close_prompt(prompt_bufnr)
       if not picker.cache_picker.ignore_empty_prompt or (curr_prompt and curr_prompt ~= "") then
         picker.cache_picker.cached_prompt = picker:_get_prompt()
         picker.cache_picker.is_cached = true
-        picker.cache_picker.timestamp = os.time()
-        picker.cache_picker.cwd = vim.fn.getcwd()
-        -- project.nvim is optional
-        local has_project, project = pcall(require, "project_nvim")
-        picker.cache_picker.project = has_project and project.get_project_root() or nil
         table.insert(cached_pickers, 1, picker)
       end
 
