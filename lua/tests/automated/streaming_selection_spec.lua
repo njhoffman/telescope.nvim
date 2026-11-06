@@ -2,8 +2,22 @@ local actions = require "telescope.actions"
 local async = require "plenary.async"
 local conf = require("telescope.config").values
 local pickers = require "telescope.pickers"
+local previewers = require "telescope.previewers"
+local sorters = require "telescope.sorters"
 
 describe("selection while results stream", function()
+  local old_lines, old_columns
+
+  before_each(function()
+    -- Large enough to show a preview window.
+    old_lines, old_columns = vim.o.lines, vim.o.columns
+    vim.o.lines, vim.o.columns = 60, 200
+  end)
+
+  after_each(function()
+    vim.o.lines, vim.o.columns = old_lines, old_columns
+  end)
+
   --- A finder that adds entries over time, and finishes only when told to.
   local function streaming_finder(values, delay)
     local finish = false
@@ -72,6 +86,50 @@ describe("selection while results stream", function()
     finder.finish()
     vim.wait(100)
     actions.close(picker.prompt_bufnr)
+  end)
+
+  local function preview_renders(values, sorter)
+    local renders = 0
+    local finder = streaming_finder(values, 15)
+    local picker = pickers.new({ sorting_strategy = "ascending" }, {
+      prompt_title = "streaming spec",
+      finder = finder,
+      sorter = sorter or conf.generic_sorter {},
+      previewer = previewers.new_buffer_previewer {
+        define_preview = function()
+          renders = renders + 1
+        end,
+      },
+    })
+    picker:find()
+    vim.wait(#values * 15 + 200)
+    local during = renders
+    finder.finish()
+    vim.wait(100)
+    actions.close(picker.prompt_bufnr)
+    return during
+  end
+
+  it("does not re-render the preview while the selected entry stays the same", function()
+    local values = {}
+    for i = 1, 30 do
+      values[i] = "entry" .. string.rep("x", i)
+    end
+    assert.are.equal(1, preview_renders(values))
+  end)
+
+  it("re-renders the preview when a better result takes the selection", function()
+    local values = {}
+    for i = 1, 30 do
+      values[i] = string.rep("x", 31 - i)
+    end
+    -- Shorter is better here, so every new entry takes the top row.
+    local sorter = sorters.Sorter:new {
+      scoring_function = function(_, _, line)
+        return #line
+      end,
+    }
+    assert.is_true(preview_renders(values, sorter) > 1)
   end)
 
   it("accepts the original arguments of get_result_processor", function()

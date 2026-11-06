@@ -717,7 +717,9 @@ function Picker:find()
     if streamed_row and self._selection_row ~= streamed_row then
       return
     end
+    self._streaming_selection = true
     self:_do_selection(self:_get_prompt() or "")
+    self._streaming_selection = false
     streamed_row = self._selection_row
   end, 50)
   table.insert(self.timers, selection_timer)
@@ -1302,8 +1304,12 @@ function Picker:set_selection(row)
     return
   end
 
-  self:_schedule_preview_refresh()
-  if old_entry == entry and self._selection_row == row then
+  local unchanged = old_entry == entry and self._selection_row == row
+  -- Results streaming in select repeatedly: only a different entry is worth a new preview.
+  if not (unchanged and self._streaming_selection) then
+    self:_schedule_preview_refresh()
+  end
+  if unchanged then
     return
   end
 

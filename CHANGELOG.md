@@ -7,6 +7,13 @@ fork release, so see upstream for earlier history.
 
 ## [Unreleased]
 
+## [0.10.2] - 2026-11-05
+
+### Fixed
+
+- The preview no longer re-renders about every 50 ms during a search when the selected entry has not changed, a
+  regression from 0.10.1.
+
 ## [0.10.1] - 2026-11-05
 
 ### Fixed
