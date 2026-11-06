@@ -7,6 +7,23 @@ fork release, so see upstream for earlier history.
 
 ## [Unreleased]
 
+## [0.7.7] - 2026-11-05
+
+### Added
+
+- README section describing what this fork adds.
+- `PLENARY_DIR` to point the test setup at plenary.nvim when it is not at `../plenary.nvim`.
+
+### Fixed
+
+- `enable_timing` passed to oneshot pickers such as `find_files` reaches their finder.
+- `themes.get_minimal` applies its layout again. Pickers had stopped storing `theme`, so its windows
+  did not overlap and a stray `x` showed in the border.
+
+### Removed
+
+- The test setup no longer looks for plenary.nvim in a lazy.nvim install.
+
 ## [0.7.6] - 2026-11-05
 
 ### Changed

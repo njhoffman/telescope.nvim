@@ -4,6 +4,30 @@
 
 Gaze deeply into unknown regions using the power of the moon.
 
+## About This Fork
+
+This is a personal fork of
+[nvim-telescope/telescope.nvim](https://github.com/nvim-telescope/telescope.nvim), merged from
+upstream regularly. Everything below this section is upstream's documentation and still applies.
+See [CHANGELOG.md](CHANGELOG.md) for releases and `:help telescope` for the options. It adds:
+
+- **Timing diagnostics:** `enable_timing` logs command, load and UI timings. See
+  [TIMING_DIAGNOSTICS.md](TIMING_DIAGNOSTICS.md).
+- **Preview scrolling:** actions for scrolling by line or page, with optional animation, such as
+  `preview_scrolling_down_line`, `preview_scrolling_page_down` and
+  `preview_smoothscrolling_page_down`.
+- **`preview.debounce`:** delays preview refreshes while moving quickly through results.
+- **Which-key popup:** groups mappings by origin, keeps the most specific ones when space runs out,
+  reflows on resize, and relabels keys with `key_labels` and `replace_keys`.
+- **Git pickers follow the buffer:** without an explicit `cwd`, they use the repo
+  [gitsigns](https://github.com/lewis6991/gitsigns.nvim) detected for the current buffer, which
+  supports bare-repo dotfiles.
+- **Smaller additions:** `themes.get_minimal`, `scrolling_limit`, `strip_path_prefix` and the center
+  layout's `results_height`.
+
+gitsigns and [project.nvim](https://github.com/ahmedkhalf/project.nvim) are optional. With project.nvim
+installed, cached pickers also record the project root.
+
 ## What Is Telescope?
 
 `telescope.nvim` is a highly extendable fuzzy finder over lists. Built on the

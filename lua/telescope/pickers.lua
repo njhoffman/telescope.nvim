@@ -261,6 +261,7 @@ local pickers = {}
 ---@field selection_strategy string
 ---@field push_cursor_on_edit boolean
 ---@field push_tagstack_on_edit boolean
+---@field theme string?
 ---@field layout_strategy string
 ---@field layout_config table
 ---@field __cycle_layout_list table?
@@ -393,6 +394,7 @@ function Picker:new(opts)
     push_cursor_on_edit = utils.if_nil(opts.push_cursor_on_edit, false),
     push_tagstack_on_edit = utils.if_nil(opts.push_tagstack_on_edit, false),
 
+    theme = opts.theme,
     layout_strategy = layout_strategy,
     layout_config = config.smarter_depth_2_extend(opts.layout_config or {}, config.values.layout_config or {}),
 

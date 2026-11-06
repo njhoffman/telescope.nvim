@@ -6,7 +6,9 @@ Baseline at review: fork master `cce6200`, upstream master `40aedd8`, 133 fork-o
 upstream-only commits, merge base `5255aa2` (upstream tag v0.2.2). About 80 inherited
 TODO/FIXME/HACK comments in `lua/` are upstream's and are not tracked here.
 
-## 1. Bugs in fork code
+## Completed
+
+### 1. Bugs in fork code (completed 2026-11-05)
 
 - [x] **Closing a picker errors when project.nvim is not installed.** (p1) [bug] `on_close_prompt` requires `project_nvim` unguarded.
       `lua/telescope/pickers.lua:1761` calls `require("project_nvim").get_project_root()`, and the default
@@ -52,7 +54,7 @@ TODO/FIXME/HACK comments in `lua/` are upstream's and are not tracked here.
       Reproduced at 80x24: 28 default mappings, room for 9, and the popup shows only `... +28 more`. Fix: stop dropping
       once the remainder fits and clip the last category; `which_key_spec` truncate cases may need updating.
 
-## 2. Upstream sync
+### 2. Upstream sync (completed 2026-11-05)
 
 - [x] **Regenerate doc/telescope.txt after the merge.** (p1) [docs] The vimdoc lacks fork entries, and the "Check docs" workflow will fail until it is regenerated.
       `make docgen` clones `jamestrew/docgen.nvim` v1.1.0 into `.deps` and runs it, which was blocked by a permission check
@@ -89,10 +91,10 @@ TODO/FIXME/HACK comments in `lua/` are upstream's and are not tracked here.
       loop resumes in a fast event, and entry makers calling the API fail with E5560. Yields drop from 200000 to 224 for
       200k lines, but a real picker shows no measurable change in load time or longest stall (about 1s and 100ms either
       way). Upstream's copy has the same line, so this could be offered upstream as a correctness cleanup.
-- [ ] **Avoid tag collisions with upstream.** (p3) [chore] Fork tags v0.3.0 to v0.4.0 use the same scheme as upstream, whose latest is v0.2.2.
+- [x] **Avoid tag collisions with upstream.** (p3) [chore] Fork tags v0.3.0 to v0.4.0 use the same scheme as upstream, whose latest is v0.2.2.
       An upstream v0.3.0 would collide on fetch. Options: a fork suffix or prefix, or `--no-tags` on the upstream remote.
 
-## 3. Tests and CI
+### 3. Tests and CI (completed 2026-11-05)
 
 - [x] **`make test` fails on gitops specs.** (p1) [test] Three specs test a module that is not in this repo.
       `lua/tests/automated/gitops_{exports,entry,utils}_spec.lua` require `gitops.*`, which lives in
@@ -107,7 +109,7 @@ TODO/FIXME/HACK comments in `lua/` are upstream's and are not tracked here.
 - [x] **CI is red on master.** (p2) [chore] The latest runs (2026-10-20) fail on every leg of Tests and on both lint jobs.
       Tests and stylua passed on `d0e6f8c`. Luacheck's last 6 W631 lines in `actions/generate.lua` are now exempt in
       `.luacheckrc`; confirm green on the next push.
-- [ ] **No specs for most fork features.** (p2) [test] Grep of `lua/tests` finds no coverage for them.
+- [x] **No specs for most fork features.** (p2) [test] Grep of `lua/tests` finds no coverage for them.
       Missing: `scroll_previewer_by`, `scroll_previewer_page`, smooth scrolling, `preview.debounce`, `enable_timing`,
       `strip_path_prefix`, `themes.get_minimal`, `LinesPipe` flushing, gitsigns detection. Start with the bugs in project 1,
       each of which should get a regression spec.
@@ -116,11 +118,11 @@ TODO/FIXME/HACK comments in `lua/` are upstream's and are not tracked here.
 - [x] **Release workflow runs on every fork tag.** (p3) [chore] `release.yml` uploads to LuaRocks on any tag push.
       This fork should not publish under upstream's rock. Remove it, or limit it to `workflow_dispatch`.
 
-## 4. Docs and cleanup
+### 4. Docs and cleanup (completed 2026-11-05)
 
 - [x] **Add a VERSION file.** (p2) [chore] Versions exist only as tags; the next commit should settle the source of truth.
       HEAD is 6 commits past v0.4.0 including `feat(which_key)`, so the next bump is minor (0.5.0).
-- [ ] **Document the fork's features.** (p3) [docs] README is upstream's and does not say how this fork differs.
+- [x] **Document the fork's features.** (p3) [docs] README is upstream's and does not say how this fork differs.
       Add a short section linking `TIMING_DIAGNOSTICS.md` and covering preview scroll actions, `preview.debounce`, which_key
       categories, gitsigns detection, `get_minimal`, `scrolling_limit`, `strip_path_prefix`. State that project.nvim and
       gitsigns are optional.
@@ -129,8 +131,8 @@ TODO/FIXME/HACK comments in `lua/` are upstream's and are not tracked here.
 - [x] **Remove stray tracked files.** (p3) [chore] Both are session notes rather than project files.
       `.claude/session-summary.md` is tracked although `.claude/` is ignored. `doc/specs/todo.md` is one URL with raw ANSI
       escapes, pointing at upstream PR 3540, which closed unmerged.
-- [ ] **Remove the machine-specific test path.** (p3) [chore] `scripts/minimal_init.vim` hardcodes a lazy.nvim plenary path.
+- [x] **Remove the machine-specific test path.** (p3) [chore] `scripts/minimal_init.vim` hardcodes a lazy.nvim plenary path.
       It is also one of the merge conflicts. Prefer a `PLENARY_DIR` environment override or a local symlink at
       `../plenary.nvim`.
-- [ ] **Share the timing helpers.** (p3) [refactor] `format_command` and `log_timing_stats` are duplicated in both job finders.
+- [x] **Share the timing helpers.** (p3) [refactor] `format_command` and `log_timing_stats` are duplicated in both job finders.
       Move them to one module, which also shrinks the fork's conflict surface in `finders/`.

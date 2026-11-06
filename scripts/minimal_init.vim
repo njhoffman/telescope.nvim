@@ -8,7 +8,10 @@ set packpath=
 
 set rtp+=.
 set rtp+=../plenary.nvim/
-set rtp+=~/.local/share/nvim/lazy/plenary.nvim/
+" Set PLENARY_DIR when plenary.nvim is not checked out next to this repo.
+if !empty($PLENARY_DIR)
+  execute 'set rtp+=' . fnameescape($PLENARY_DIR)
+endif
 
 runtime! plugin/plenary.vim
 runtime! plugin/telescope.lua

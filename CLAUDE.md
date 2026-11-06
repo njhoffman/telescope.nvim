@@ -212,7 +212,7 @@ From CONTRIBUTING.md:
 - Tests use plenary.nvim test harness
 - Located in `lua/tests/automated/`
 - Some interactive test cases in `lua/tests/pickers/`
-- Requires minimal_init.vim setup with plenary.nvim and tree-sitter-lua
+- Requires plenary.nvim at `../plenary.nvim`, or set `PLENARY_DIR`
 
 ## Key Files for Common Tasks
 

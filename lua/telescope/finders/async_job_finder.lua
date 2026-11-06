@@ -4,34 +4,8 @@ local LinesPipe = async_job.LinesPipe
 local make_entry = require "telescope.make_entry"
 local config = require "telescope.config"
 local log = require "telescope.log"
+local timing = require "telescope.finders.timing"
 local utils = require "telescope.utils"
-
-local function format_command(command, args)
-  local cmd_str = command
-  if args and #args > 0 then
-    cmd_str = cmd_str .. " " .. table.concat(args, " ")
-  end
-  return cmd_str
-end
-
-local function log_timing_stats(stats)
-  local duration_sec = stats.duration_ms / 1000
-  local entries_per_sec = stats.entry_count / duration_sec
-
-  log.info(
-    string.format(
-      "Finder Performance:\n"
-        .. "  Command: %s\n"
-        .. "  Total Time: %.3fs\n"
-        .. "  Entries: %d\n"
-        .. "  Rate: %.1f entries/sec",
-      stats.command,
-      duration_sec,
-      stats.entry_count,
-      entries_per_sec
-    )
-  )
-end
 
 return function(opts)
   log.trace("Creating async_job:", opts)
@@ -71,7 +45,7 @@ return function(opts)
     end
 
     -- Log command execution
-    local cmd_string = format_command(job_opts.command, job_opts.args)
+    local cmd_string = timing.format_command(job_opts.command, job_opts.args)
     if enable_timing then
       log.debug(string.format(" - Job Finder:  %s", cmd_string))
       if job_opts.cwd then
@@ -133,7 +107,7 @@ return function(opts)
     -- Log completion stats
     if enable_timing then
       timing_stats.duration_ms = (vim.uv.hrtime() - timing_stats.start_time) / 1e6
-      log_timing_stats(timing_stats)
+      timing.log_stats("Finder Performance", timing_stats)
     end
 
     process_complete()
