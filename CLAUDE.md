@@ -18,6 +18,9 @@ telescope.nvim is a highly extendable fuzzy finder plugin for Neovim built on la
 # Run all automated tests
 make test
 
+# Run one spec. Avoid PlenaryBustedFile: its child nvim ignores -u and loads the user's full config.
+nvim --headless --noplugin -u scripts/minimal_init.vim -c "PlenaryBustedDirectory lua/tests/automated/foo_spec.lua { minimal_init = './scripts/minimal_init.vim' }"
+
 # Tests use plenary.nvim's test harness and are located in lua/tests/automated/
 # The test command runs: nvim --headless --noplugin -u scripts/minimal_init.vim -c "PlenaryBustedDirectory lua/tests/automated/ { minimal_init = './scripts/minimal_init.vim' }"
 ```

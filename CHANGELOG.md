@@ -7,6 +7,12 @@ fork release, so see upstream for earlier history.
 
 ## [Unreleased]
 
+## [0.7.4] - 2026-11-05
+
+### Fixed
+
+- `make test` no longer picks up the user's nvim config and plugins from the runtimepath.
+
 ## [0.7.3] - 2026-11-05
 
 ### Fixed

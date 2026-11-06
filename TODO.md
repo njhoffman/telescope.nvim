@@ -99,10 +99,11 @@ TODO/FIXME/HACK comments in `lua/` are upstream's and are not tracked here.
       `~/.config/nvim/lua/modules/gitops`. Local run on `cce6200`: 276 passed and 0 failed in the other specs, 5 errors in
       `gitops_exports_spec`, and `gitops_entry` and `gitops_utils` report no results, so `make test` exits 1. Fix: move the
       specs next to the module. `which_key_spec` should be unaffected.
-- [ ] **Tests are not isolated from the personal nvim config.** (p2) [test] `-u scripts/minimal_init.vim` leaves `~/.config/nvim` on the runtimepath.
-      `runtime! plugin/telescope.lua` also runs the config's copy, and `project_nvim` resolves from
-      `~/.config/nvim/lua`, which hid the close bug locally. Runs print sidebar errors and `Bad config file`. Fix: remove
-      the config and data dirs from `rtp` in `minimal_init.vim`, or set `XDG_CONFIG_HOME` in the Makefile.
+- [x] **Tests are not isolated from the personal nvim config.** (p2) [test] `-u scripts/minimal_init.vim` left `~/.config/nvim` on the runtimepath.
+      `runtime! plugin/telescope.lua` also ran the config's copy, and `project_nvim` resolved from `~/.config/nvim/lua`,
+      which hid the close bug locally. `minimal_init.vim` now removes the config and data dirs and clears `packpath`;
+      `test_isolation_spec` guards it. `PlenaryBustedFile` ignores `-u` and loads the full config, so run single specs
+      with `PlenaryBustedDirectory` (see `CLAUDE.md`).
 - [x] **CI is red on master.** (p2) [chore] The latest runs (2026-10-20) fail on every leg of Tests and on both lint jobs.
       Tests and stylua passed on `d0e6f8c`. Luacheck's last 6 W631 lines in `actions/generate.lua` are now exempt in
       `.luacheckrc`; confirm green on the next push.

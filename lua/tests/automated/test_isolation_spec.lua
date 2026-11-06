@@ -1,0 +1,10 @@
+describe("test environment", function()
+  it("does not load another copy of the plugin from the user's config", function()
+    assert.are.equal(1, #vim.api.nvim_get_runtime_file("plugin/telescope.lua", true))
+  end)
+
+  it("keeps the user's config and packages off the paths", function()
+    assert.is_false(vim.tbl_contains(vim.opt.runtimepath:get(), vim.fn.stdpath "config"))
+    assert.are.same({}, vim.opt.packpath:get())
+  end)
+end)
