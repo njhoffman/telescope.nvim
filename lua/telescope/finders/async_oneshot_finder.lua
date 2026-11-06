@@ -3,7 +3,6 @@ local async_job = require "telescope.async_job"
 local utils = require "telescope.utils"
 local make_entry = require "telescope.make_entry"
 local config = require "telescope.config"
-local log = require "telescope.log"
 local timing = require "telescope.finders.timing"
 
 local LinesPipe = async_job.LinesPipe

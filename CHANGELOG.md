@@ -7,6 +7,12 @@ fork release, so see upstream for earlier history.
 
 ## [Unreleased]
 
+## [0.8.1] - 2026-11-05
+
+### Fixed
+
+- Removed an unused variable from the oneshot finder, which failed the lint check.
+
 ## [0.8.0] - 2026-11-05
 
 ### Changed
