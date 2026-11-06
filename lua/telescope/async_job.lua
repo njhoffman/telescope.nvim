@@ -162,8 +162,8 @@ function LinesPipe:iter(schedule, opts)
       if previous == nil then
         return nil, true
       elseif #previous > 0 then
-        -- the file doesn't end in a newline. flush the line contents we had and finish.
-        return previous .. "\n", true
+        -- the output doesn't end in a separator. flush the line contents we had and finish.
+        return previous, true
       end
     end
 
@@ -194,11 +194,8 @@ function LinesPipe:iter(schedule, opts)
           async.util.scheduler()
         end
         return res
-      elseif next_value ~= nil then
-        return next_value()
-      else
-        return nil
       end
+      return next_value()
     end
 
     index = index + 1

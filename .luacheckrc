@@ -30,4 +30,9 @@ files = {
       "631", -- allow line len > 120
     }
   },
+  ["lua/telescope/actions/generate.lua"] = {
+    ignore = {
+      "631", -- ---@field annotations stay on one line
+    }
+  },
 }

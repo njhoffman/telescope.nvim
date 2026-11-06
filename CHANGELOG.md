@@ -7,6 +7,17 @@ fork release, so see upstream for earlier history.
 
 ## [Unreleased]
 
+## [0.7.3] - 2026-11-05
+
+### Fixed
+
+- which_key popup keeps the mappings that fit when a category overflows, instead of hiding the
+  whole category. At 80x24 it showed no mappings at all.
+- Git pickers honor an explicit `cwd` when the current buffer belongs to another repo.
+- `use_file_path` on git pickers uses the repo root gitsigns detected, even with `use_git_root = false`.
+- The last line of job output no longer ends in a literal newline when the command doesn't
+  terminate it.
+
 ## [0.7.2] - 2026-11-05
 
 ### Fixed

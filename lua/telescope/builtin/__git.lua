@@ -453,7 +453,7 @@ local try_gitsigns = function(opts)
     opts.gitdir = gs.gitdir
     opts.toplevel = gs.root
     if gs.root then
-      opts.cwd = opts.use_git_root and gs.root or (opts.cwd or vim.uv.cwd())
+      opts.cwd = (opts.use_git_root or opts.use_file_path) and gs.root or vim.uv.cwd()
     end
     return true
   end
@@ -490,10 +490,10 @@ end
 local set_opts_cwd = function(opts)
   opts.use_git_root = utils.if_nil(opts.use_git_root, true)
 
-  -- Check if the current buffer's gitsigns-detected repo should override CWD-based detection.
-  -- This handles detached worktrees (e.g. bare repo dotfiles) where the buffer is tracked by a
-  -- different repo than the one at CWD.
-  if try_gitsigns(opts) then
+  -- Unless a cwd was given, prefer the repo gitsigns detected for the current buffer over
+  -- CWD-based detection. This handles detached worktrees (e.g. bare repo dotfiles) where the
+  -- buffer is tracked by a different repo than the one at CWD.
+  if not opts.cwd and try_gitsigns(opts) then
     return
   end
 

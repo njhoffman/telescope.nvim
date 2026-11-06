@@ -24,8 +24,8 @@ function M.dimensions(mappings, opts, column_indent)
 end
 
 --- Apply priority-based truncation. When the mapping list exceeds capacity,
---- drop lower-priority categories in order (typically "default" first, then
---- "user_global"), keeping the "picker" tier intact.
+--- trim lower-priority categories in order (typically "default" first, then
+--- "user_global"), only as far as needed, keeping the "picker" tier intact.
 ---
 --- Returns the (possibly pruned) list and the number of entries that were
 --- dropped due to overflow so the caller can render an indicator.
@@ -45,12 +45,14 @@ function M.truncate(mappings, capacity, drop_order)
   end
 
   local dropped = 0
+  local excess = #mappings - capacity
   for _, origin in ipairs(drop_order or { "default", "user_global" }) do
-    if (#by_origin.default + #by_origin.user_global + #by_origin.picker) <= capacity then
-      break
+    local bucket = by_origin[origin] or {}
+    while excess > 0 and #bucket > 0 do
+      table.remove(bucket)
+      excess = excess - 1
+      dropped = dropped + 1
     end
-    dropped = dropped + #(by_origin[origin] or {})
-    by_origin[origin] = {}
   end
 
   -- If picker alone still overflows, clip it and report how many we hid

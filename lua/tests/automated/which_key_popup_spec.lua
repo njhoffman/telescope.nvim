@@ -7,7 +7,7 @@ describe("actions.which_key popup", function()
   local picker, old_lines, old_columns
 
   before_each(function()
-    -- Large enough to render every default mapping; smaller screens drop them all.
+    -- Large enough to render every default mapping.
     old_lines, old_columns = vim.o.lines, vim.o.columns
     vim.o.lines, vim.o.columns = 60, 200
     picker = pickers.new({}, {
@@ -29,6 +29,19 @@ describe("actions.which_key popup", function()
       return vim.api.nvim_buf_get_name(buf):find("_TelescopeWhichKey", 1, true) ~= nil
     end, vim.api.nvim_list_bufs())
   end
+
+  it("shows the mappings that fit on a small screen", function()
+    vim.o.lines, vim.o.columns = 24, 80
+    actions.which_key(picker.prompt_bufnr)
+
+    local popup = vim.fn.bufnr "_TelescopeWhichKey"
+    local lines = vim.api.nvim_buf_get_lines(popup, 0, -1, false)
+    local text = table.concat(lines, "\n")
+    assert.is_truthy(text:find(" -> ", 1, true))
+    assert.is_truthy(text:find("more", 1, true))
+
+    actions.which_key(picker.prompt_bufnr)
+  end)
 
   it("opens with highlighted mappings and toggles closed", function()
     actions.which_key(picker.prompt_bufnr)

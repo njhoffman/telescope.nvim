@@ -143,6 +143,32 @@ describe("actions._which_key", function()
       eq("picker", kept[1].origin)
     end)
 
+    it("keeps as many mappings of a category as fit", function()
+      local mappings = {}
+      for i = 1, 5 do
+        table.insert(mappings, make_mapping("default", "d" .. i))
+      end
+      local kept, hidden = layout.truncate(mappings, 3, { "default", "user_global" })
+      eq(3, #kept)
+      eq(2, hidden)
+      eq("d1", kept[1].name)
+      eq("d3", kept[3].name)
+    end)
+
+    it("trims a lower-priority category before touching the next one", function()
+      local mappings = {
+        make_mapping("picker", "p1"),
+        make_mapping("user_global", "u1"),
+        make_mapping("user_global", "u2"),
+        make_mapping("default", "d1"),
+        make_mapping("default", "d2"),
+      }
+      local kept, hidden = layout.truncate(mappings, 4, { "default", "user_global" })
+      eq(4, #kept)
+      eq(1, hidden)
+      eq("d1", kept[4].name)
+    end)
+
     it("still clips picker-only mappings if truly too many", function()
       local mappings = {
         make_mapping("picker", "p1"),

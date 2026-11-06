@@ -18,15 +18,15 @@ TODO/FIXME/HACK comments in `lua/` are upstream's and are not tracked here.
       Reproduced on the local nvim 0.13-dev: a number raises `opts: expected table, got number`, and `{ min = ERROR }`
       is ignored (returned 2 of 2 diagnostics, 1 expected), which covers `severity_limit` and `severity_bound`.
       Fix: pass `diagnosis_opts` and drop the NOTE comment; add a spec.
-- [ ] **Final line without a newline keeps a literal newline.** (p2) [bug] `LinesPipe:iter` returns `"b\n"` for the last line.
+- [x] **Final line without a newline keeps a literal newline.** (p2) [bug] `LinesPipe:iter` returns `"b\n"` for the last line.
       `lua/telescope/async_job.lua:166` appends `"\n"` and the is-done branch returns it as is. Reproduced with
       `new_oneshot_job({ "printf", "a\\nb" })`, which yields `{ "a", "b\n" }`. Also wrong for NUL-split output.
       Fix: return `previous` unchanged. `elseif next_value ~= nil` at line 197 is always true, so its `else` is dead code.
-- [ ] **Gitsigns detection overrides an explicit cwd.** (p2) [bug] Git pickers follow the current buffer's repo even when told otherwise.
+- [x] **Gitsigns detection overrides an explicit cwd.** (p2) [bug] Git pickers follow the current buffer's repo even when told otherwise.
       `try_gitsigns` (`lua/telescope/builtin/__git.lua:443`) runs first in `set_opts_cwd` (line 490) and returns early, so
       `git_files({ cwd = "~/other" })` gets the buffer's repo root, gitdir and work tree; `use_file_path` is skipped too.
-      Found by reading the code, not reproduced. Fix: only consult gitsigns when neither `opts.cwd` nor `use_file_path` is
-      set. Keep the bare-repo dotfiles case working and add a spec.
+      Fixed for explicit `cwd` only: gitsigns reports the repo of the file itself, so `use_file_path` keeps using it,
+      which also keeps bare-repo dotfiles working.
 - [ ] **Timers are stopped but never closed.** (p2) [bug] libuv handles leak for each picker and each smooth-scroll tap.
       `Picker:_detach` (`lua/telescope/pickers.lua:1831`) only stops `self.timers`, though `debounce.lua` says the caller
       must close them. `__smoothscroll_previewer` (`lua/telescope/actions/set.lua:336`) allocates a timer per tap and
@@ -37,8 +37,9 @@ TODO/FIXME/HACK comments in `lua/` are upstream's and are not tracked here.
       logged. The fork also raised this from upstream's `log.warn` to `log.error`. Fix: parenthesize the conditional.
 - [ ] **strip_path_prefix does more than its docs say.** (p3) [bug] Documented as a display option, but it rewrites the path used to open the file.
       `lua/telescope/make_entry.lua:488` changes `filename`, which feeds `entry.filename` and `ordinal`, and only
-      `gen_from_quickfix` applies it. Stripping may be intended for container paths; decide, then either fix the docs
-      or strip display only.
+      `gen_from_quickfix` applies it, and `from_entry` opens `entry.filename`, so setting it changes which file opens.
+      Nothing in the nvim config sets it today. Likely meant as display only, as the docs say; confirm, then strip only
+      in `make_display`.
 - [ ] **Per-picker enable_timing misses live_grep.** (p3) [bug] `finders.new_job` does not forward the option.
       `lua/telescope/finders.lua` builds `async_job_finder` from three fixed fields, so job-based pickers only honor the
       global setting, while `TIMING_DIAGNOSTICS.md` documents per-picker use. The "Pass through enable_timing" comment in
@@ -47,7 +48,7 @@ TODO/FIXME/HACK comments in `lua/` are upstream's and are not tracked here.
       Reproduced: a picker made with `{ preview = { debounce = 20 } }` has no `_preview_refresh_debounced` after resume.
       Fix: keep the value on the picker and read it in `Picker:new`.
 
-- [ ] **which_key shows no mappings when one category overflows.** (p2) [bug] Truncation drops whole categories instead of trimming them.
+- [x] **which_key shows no mappings when one category overflows.** (p2) [bug] Truncation drops whole categories instead of trimming them.
       `M.truncate` in `lua/telescope/actions/_which_key/layout.lua` empties `default` whenever the total exceeds capacity.
       Reproduced at 80x24: 28 default mappings, room for 9, and the popup shows only `... +28 more`. Fix: stop dropping
       once the remainder fits and clip the last category; `which_key_spec` truncate cases may need updating.
@@ -102,10 +103,9 @@ TODO/FIXME/HACK comments in `lua/` are upstream's and are not tracked here.
       `runtime! plugin/telescope.lua` also runs the config's copy, and `project_nvim` resolves from
       `~/.config/nvim/lua`, which hid the close bug locally. Runs print sidebar errors and `Bad config file`. Fix: remove
       the config and data dirs from `rtp` in `minimal_init.vim`, or set `XDG_CONFIG_HOME` in the Makefile.
-- [ ] **CI is red on master.** (p2) [chore] The latest runs (2026-10-20) fail on every leg of Tests and on both lint jobs.
-      Tests failed at "Run tests" on all 9 OS/version legs; the logs did not yield a cause, and the since-moved gitops
-      specs are the likely one, so recheck after the next push. Stylua is now clean. Luacheck still reports 6 W631 long
-      lines in `actions/generate.lua`; wrap them or exempt `---@field` lines in `.luacheckrc`.
+- [x] **CI is red on master.** (p2) [chore] The latest runs (2026-10-20) fail on every leg of Tests and on both lint jobs.
+      Tests and stylua passed on `d0e6f8c`. Luacheck's last 6 W631 lines in `actions/generate.lua` are now exempt in
+      `.luacheckrc`; confirm green on the next push.
 - [ ] **No specs for most fork features.** (p2) [test] Grep of `lua/tests` finds no coverage for them.
       Missing: `scroll_previewer_by`, `scroll_previewer_page`, smooth scrolling, `preview.debounce`, `enable_timing`,
       `strip_path_prefix`, `themes.get_minimal`, `LinesPipe` flushing, gitsigns detection. Start with the bugs in project 1,
