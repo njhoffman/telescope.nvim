@@ -7,6 +7,12 @@ fork release, so see upstream for earlier history.
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-11-05
+
+### Removed
+
+- LuaRocks release workflow, so pushing a fork tag no longer tries to publish a rock.
+
 ## [0.7.0] - 2026-11-05
 
 Merged upstream telescope.nvim through `40aedd8`.

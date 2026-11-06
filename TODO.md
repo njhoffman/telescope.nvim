@@ -112,7 +112,7 @@ TODO/FIXME/HACK comments in `lua/` are upstream's and are not tracked here.
       each of which should get a regression spec.
 - [x] **Docgen workflow pins an unsupported Neovim.** (p2) [chore] `docgen.yml` installs 0.9.5, but `plugin/telescope.lua` requires 0.10.4.
       Replace it with upstream's simplified workflow as part of the merge, or update the pin.
-- [ ] **Release workflow runs on every fork tag.** (p3) [chore] `release.yml` uploads to LuaRocks on any tag push.
+- [x] **Release workflow runs on every fork tag.** (p3) [chore] `release.yml` uploads to LuaRocks on any tag push.
       This fork should not publish under upstream's rock. Remove it, or limit it to `workflow_dispatch`.
 
 ## 4. Docs and cleanup
